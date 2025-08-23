@@ -235,7 +235,8 @@ function createEnemyInstance(name){
     points: def.points || 1,
     damage: def.damage || 1,
     spawnTime: Date.now(),
-    splitLevel: 0 
+    splitLevel: 0,
+    splittable: def.splittable || def.specialAbility === 'split',
   };
 }
 
@@ -252,6 +253,9 @@ function checkForUpgrade(){
  function presentUpgradeChoices() {
    const choices = [];
    const ownedWeapons = state.player.weapons.map(wi => state.cfg.weapons[wi]);
+
+   const aiPassivePool = (state.cfg.upgrades || [])
+     .filter(u => u && u.effect && u.effect.type && u.effect.type !== 'weapon' && u.effect.type !== 'upgrade_weapon');
    
    // Option 1: Upgrade an existing weapon
    if (ownedWeapons.length > 0) {
@@ -286,7 +290,8 @@ function checkForUpgrade(){
      { name: "Damage Core", effect: { type: "damage", value: 2 }, description: "+2 damage to all weapons.", rarity: "rare" },
      { name: "Overdrive", effect: { type: "firerate", value: 0.3 }, description: "Massively increase fire rate.", rarity: "rare" },
      { name: "Titanium Hull", effect: { type: "maxhealth", value: 10 }, description: "+10 max health.", rarity: "common" },
-     { name: "Bullet Velocity", effect: { type: "bulletspeed", value: 1 }, description: "Bullets travel much faster.", rarity: "common" }
+     { name: "Bullet Velocity", effect: { type: "bulletspeed", value: 1 }, description: "Bullets travel much faster.", rarity: "common" },
+     ...aiPassivePool
    ];
    choices.push(passiveUpgrades[Math.floor(Math.random() * passiveUpgrades.length)]);
 
@@ -397,6 +402,23 @@ function checkForUpgrade(){
              if (weaponToUpgrade.level === 5) { weaponToUpgrade.splitShot = 4; weaponToUpgrade.dmg *= 0.5; }
              break;
          }
+         // Generic fallback for AI-defined weapons
+         if (!['Machine Gun', 'Shotgun', 'Rocket Launcher'].includes(weaponToUpgrade.name)) {
+           switch (weaponToUpgrade.level) {
+             case 2:
+               weaponToUpgrade.fireRate = (weaponToUpgrade.fireRate || 1) * 1.25;
+               break;
+             case 3:
+               weaponToUpgrade.dmg = (weaponToUpgrade.dmg || 1) + 1;
+               break;
+             case 4:
+               weaponToUpgrade.piercing = Math.max(1, (weaponToUpgrade.piercing || 0) + 1);
+               break;
+             case 5:
+               weaponToUpgrade.homing = Math.max(0.05, (weaponToUpgrade.homing || 0) + 0.05);
+               break;
+           }
+         }
        }
        break;
      case 'speed':
@@ -425,6 +447,24 @@ function checkForUpgrade(){
      case 'maxhealth':
        state.player.maxHp += value;
        state.player.hp += value;
+       break;
+     case 'piercing':
+       state.player.weapons.forEach(wi => {
+         const w = state.cfg.weapons[wi];
+         w.piercing = (w.piercing || 0) + value;
+       });
+       break;
+     case 'homing':
+       state.player.weapons.forEach(wi => {
+         const w = state.cfg.weapons[wi];
+         w.homing = (w.homing || 0) + value;
+       });
+       break;
+     case 'explosive':
+       state.player.weapons.forEach(wi => {
+         const w = state.cfg.weapons[wi];
+         w.explosive = (w.explosive || 0) + value;
+       });
        break;
      default:
        break;
@@ -1179,9 +1219,10 @@ function draw(){
       state.dom.ctx.textAlign = 'center';
       let icon = '';
       switch(e.specialAbility){
-case 'shield': icon = '◈'; break;
+        case 'shield': icon = '◈'; break;
         case 'rage': icon = '!'; break;
         case 'teleport': icon = '⚡'; break;
+        case 'split': icon = '✂'; break;
       }
       state.dom.ctx.fillText(icon, e.x, e.y - e.size - 12);
     }
@@ -1190,9 +1231,9 @@ case 'shield': icon = '◈'; break;
   });
   
    // Draw weapon cooldown indicators
-  const weaponBarY = state.dom.canvas.height - 40;
+  const weaponBarY = window.innerHeight - 40;
   const totalWidth = state.player.weapons.length * 80;
-  const startX = (state.dom.canvas.width - totalWidth) / 2;
+  const startX = (window.innerWidth - totalWidth) / 2;
 
   state.player.weapons.forEach((wi, index) => {
     const w = state.cfg.weapons[wi];

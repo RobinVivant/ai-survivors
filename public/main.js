@@ -71,6 +71,12 @@ function setupInput() {
     }
   });
 
+  window.addEventListener('pointerdown', () => {
+    if (state.audioContext && state.audioContext.state === 'suspended') {
+      state.audioContext.resume();
+    }
+  });
+
   window.addEventListener('keyup', e => {
     state.keys[e.key] = false;
     state.keys[e.code] = false;
@@ -100,7 +106,7 @@ async function init() {
     size: 10,
     hp: 50,
     maxHp: 50,
-    weapons: [0],
+    weapons: state.cfg.weapons.length ? [0] : [],
     lastShotMap: {},
     velocity: { x: 0, y: 0 },
     acceleration: 0.3,
