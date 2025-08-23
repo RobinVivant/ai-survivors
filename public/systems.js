@@ -1185,7 +1185,8 @@ function draw(){
       state.dom.ctx.moveTo(p.x, p.y);
       state.dom.ctx.lineTo(p.x2, p.y2);
       state.dom.ctx.stroke();
-      state.dom.ctx.restore();
+      state.dom.ctx.restore(); // restore inner lightning state
+      state.dom.ctx.restore(); // restore per-particle save (prevents state leak)
       return;
     }
     
