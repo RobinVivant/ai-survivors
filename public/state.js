@@ -20,6 +20,12 @@ export const state = {
   nextUpgradeAt: 10,
   lastFrameTime: 0,
   scoreMultiplier: 1,
+  // runtime/lifecycle
+  running: false,
+  isVisible: true,
+  isFocused: true,
+  animationId: null,
+  uiLastUpdate: 0,
 
   // entities and fx
   activeEnemies: [],
@@ -37,6 +43,7 @@ export const state = {
     upgradeOverlay: null,
     healthFill: null,
     waveIndicator: null,
+    bgGradient: null, // cached background gradient
   },
 };
 

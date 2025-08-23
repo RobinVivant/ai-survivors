@@ -13,6 +13,19 @@ function resizeCanvas() {
   if (state.stars && state.stars.length) {
     initStars(state.stars.length);
   }
+  recomputeBackgroundGradient();
+}
+
+function recomputeBackgroundGradient() {
+  if (!state.dom.ctx) return;
+  const r = Math.hypot(window.innerWidth, window.innerHeight);
+  const g = state.dom.ctx.createRadialGradient(
+    window.innerWidth / 2, window.innerHeight / 2, 0,
+    window.innerWidth / 2, window.innerHeight / 2, r
+  );
+  g.addColorStop(0, state.cfg.background || '#1a0d33');
+  g.addColorStop(1, '#000011');
+  state.dom.bgGradient = g;
 }
 
 function setupDOM() {
@@ -32,6 +45,32 @@ function setupAudio() {
     console.log('Web Audio API not supported');
   }
 }
+
+function startLoop() {
+  if (state.animationId) return;
+  state.lastFrameTime = 0;
+  state.animationId = requestAnimationFrame(gameLoop);
+  state.running = true;
+}
+
+function stopLoop() {
+  if (state.animationId) {
+    cancelAnimationFrame(state.animationId);
+    state.animationId = null;
+  }
+  state.running = false;
+}
+
+function updateLoopRunning() {
+  if (!state.loading && !state.gamePaused && state.isVisible && state.isFocused) {
+    startLoop();
+  } else {
+    stopLoop();
+  }
+}
+
+// expose so systems.js can pause/resume
+window.__updateLoopRunning = updateLoopRunning;
 
 function setupInput() {
   window.addEventListener('keydown', e => {
@@ -62,6 +101,7 @@ function setupInput() {
         } else {
           state.dom.upgradeOverlay.style.display = 'none';
         }
+        window.__updateLoopRunning && window.__updateLoopRunning();
       }
     }
 
@@ -83,6 +123,18 @@ function setupInput() {
   });
 
   window.addEventListener('resize', resizeCanvas);
+  document.addEventListener('visibilitychange', () => {
+    state.isVisible = document.visibilityState === 'visible';
+    window.__updateLoopRunning && window.__updateLoopRunning();
+  });
+  window.addEventListener('focus', () => {
+    state.isFocused = true;
+    window.__updateLoopRunning && window.__updateLoopRunning();
+  });
+  window.addEventListener('blur', () => {
+    state.isFocused = false;
+    window.__updateLoopRunning && window.__updateLoopRunning();
+  });
 }
 
 async function init() {
@@ -97,6 +149,7 @@ async function init() {
   state.cfg.waves = Array.isArray(cfg.waves) ? cfg.waves : [];
   state.cfg.upgrades = Array.isArray(cfg.upgrades) ? cfg.upgrades : [];
   state.cfg.background = typeof cfg.background === 'string' ? cfg.background : '#331a33';
+  recomputeBackgroundGradient();
 
   state.player = {
     x: window.innerWidth / 2,
@@ -117,17 +170,18 @@ async function init() {
   state.loading = false;
   showWaveIndicator(1);
   loadWave();
-  requestAnimationFrame(gameLoop);
+  startLoop();
 }
 
 function gameLoop(ts) {
   if (state.loading) {
-    requestAnimationFrame(gameLoop);
+    state.animationId = requestAnimationFrame(gameLoop);
     return;
   }
   if (state.player && state.player.hp <= 0) {
     showGameOver();
     draw();
+    state.animationId = null;
     return;
   }
 
@@ -138,7 +192,11 @@ function gameLoop(ts) {
     update(ts, deltaTime);
   }
   draw();
-  requestAnimationFrame(gameLoop);
+  if (!state.gamePaused && state.isVisible && state.isFocused) {
+    state.animationId = requestAnimationFrame(gameLoop);
+  } else {
+    state.animationId = null;
+  }
 }
 
 init();

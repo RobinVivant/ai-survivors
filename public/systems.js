@@ -1,9 +1,12 @@
 import { state } from './state.js';
 
+const MAX_PARTICLES = 600;
+
 // --------------------------------------------------
 // Particle system and visual effects
 // --------------------------------------------------
 function createParticles(x, y, color, count = 8, type = 'explosion') {
+  if (state.particles.length >= MAX_PARTICLES) return;
   for (let i = 0; i < count; i++) {
     const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
     const speed = Math.random() * 4 + 2;
@@ -21,6 +24,7 @@ function createParticles(x, y, color, count = 8, type = 'explosion') {
 }
 
 function createTrailParticle(x, y, color) {
+  if (state.particles.length >= MAX_PARTICLES) return;
   state.particles.push({
     x: x + (Math.random() - 0.5) * 4,
     y: y + (Math.random() - 0.5) * 4,
@@ -306,6 +310,7 @@ function checkForUpgrade(){
      </div>
    `;
    state.dom.upgradeOverlay.style.display = 'flex';
+   window.__updateLoopRunning && window.__updateLoopRunning();
    const card = state.dom.upgradeOverlay.querySelector('.overlay-card');
 
    const resumeGame = () => {
@@ -313,6 +318,7 @@ function checkForUpgrade(){
      state.dom.upgradeOverlay.style.display = 'none';
      createParticles(window.innerWidth / 2, window.innerHeight / 2, '#00ffff', 20, 'explosion');
      playSound('upgrade');
+     window.__updateLoopRunning && window.__updateLoopRunning();
    };
 
    choices.forEach((upg, i) => {
@@ -470,6 +476,8 @@ function checkForUpgrade(){
  }
 
  function showGameOver() {
+  state.gamePaused = true;
+  window.__updateLoopRunning && window.__updateLoopRunning();
   state.dom.upgradeOverlay.innerHTML = `
     <div class="overlay-card">
       <h1 class="overlay-title">GAME OVER</h1>
@@ -500,6 +508,13 @@ function update(ts, deltaTime){
 }
 
  function updateUI() {
+  const healthPercent = Math.max(0, state.player.hp / state.player.maxHp) * 100;
+  state.dom.healthFill.style.width = healthPercent + '%';
+
+  const now = performance.now();
+  if (state.uiLastUpdate && now - state.uiLastUpdate < 100) return; // ~10fps UI refresh
+  state.uiLastUpdate = now;
+
   const nextUpgradeKills = state.nextUpgradeAt - state.kills;
   
   state.dom.uiDiv.innerHTML = `
@@ -510,9 +525,6 @@ function update(ts, deltaTime){
     <div style="font-size: 12px; opacity: 0.8; margin-top: 8px;">Weapons: ${state.player.weapons.map(i => state.cfg.weapons[i]?.name || '').join(', ')}</div>
     ${state.gamePaused ? '<div style="color: #ffff00; font-weight: bold; margin-top: 8px;">PAUSED</div>' : ''}
   `;
-  
-  const healthPercent = Math.max(0, state.player.hp / state.player.maxHp) * 100;
-  state.dom.healthFill.style.width = healthPercent + '%';
 }
 
  function handlePlayerMovement(deltaTime){
@@ -864,7 +876,7 @@ function moveBullets(deltaTime){
     b.x += b.dx * timeMultiplier;
     b.y += b.dy * timeMultiplier;
     
-    if (Math.random() < 0.2) {
+    if (Math.random() < 0.1) {
       createTrailParticle(b.x, b.y, b.color);
     }
   });
@@ -1071,10 +1083,8 @@ function draw(){
   state.dom.ctx.translate(state.cameraShake.x, state.cameraShake.y);
   
    // Background gradient
-  const gradient = state.dom.ctx.createRadialGradient(window.innerWidth/2, window.innerHeight/2, 0, window.innerWidth/2, window.innerHeight/2, window.innerWidth);
-  gradient.addColorStop(0, state.cfg.background || '#1a0d33');
-  gradient.addColorStop(1, '#000011');
-  state.dom.ctx.fillStyle = gradient;
+  const gradient = state.dom.bgGradient;
+  state.dom.ctx.fillStyle = gradient || (state.cfg.background || '#1a0d33');
   state.dom.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
   
   // Animated stars
