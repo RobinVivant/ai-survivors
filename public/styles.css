@@ -138,3 +138,193 @@ html, body {
   transition: opacity 0.5s ease, transform 0.5s ease;
   pointer-events: none;
 }
+:root {
+  --accent: #00ffff;
+  --accent-2: #ff2ea6;
+  --success: #33ff99;
+  --danger: #ff3355;
+  --hud-bg: rgba(10, 16, 30, 0.45);
+  --hud-border: rgba(0, 255, 255, 0.2);
+  --card-bg: rgba(8, 12, 24, 0.66);
+  --card-border: rgba(0, 255, 255, 0.25);
+  --text: #e6f3ff;
+  --muted: #96a6b6;
+}
+
+html, body {
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+  background: #05050a;
+}
+
+#game-wrapper::before,
+#game-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+#game-wrapper::before {
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(0,0,0,0.35) 100%);
+}
+#game-wrapper::after {
+  background: repeating-linear-gradient(to bottom,
+    rgba(255,255,255,0.025) 0px,
+    rgba(255,255,255,0.025) 1px,
+    rgba(0,0,0,0) 2px,
+    rgba(0,0,0,0) 4px
+  );
+  mix-blend-mode: overlay;
+}
+
+#ui-container {
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+#ui {
+  padding: 10px 14px;
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-border);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: 14px;
+  color: var(--text);
+  letter-spacing: 0.2px;
+}
+
+/* Health bar polish */
+.health-bar {
+  width: clamp(200px, 40vw, 340px);
+  height: 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+#healthFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ff4d6d, #ff2ea6);
+  box-shadow: 0 0 16px rgba(255, 46, 166, 0.35);
+  transition: width 180ms ease;
+}
+
+/* Wave indicator refinement */
+.wave-indicator {
+  font-family: Orbitron, monospace;
+  font-size: clamp(28px, 5vw, 56px);
+  letter-spacing: 4px;
+  text-shadow: 0 0 18px rgba(0,255,255,0.45);
+  transform: translate(-50%, -50%) scale(0.5);
+  transition: opacity 800ms ease, transform 600ms cubic-bezier(.2,.8,.2,1);
+}
+
+/* Overlay shell */
+#upgradeOverlay {
+  padding: 24px;
+  background: radial-gradient(1200px 800px at 50% 50%, rgba(0, 255, 255, 0.06), rgba(0, 0, 0, 0.65) 60%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Overlay card + typography */
+.overlay-card {
+  width: min(720px, 92vw);
+  padding: 28px;
+  border-radius: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06) inset,
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    0 0 32px rgba(0,255,255,0.12);
+}
+.overlay-title {
+  margin: 0 0 6px 0;
+  font-family: Orbitron, monospace;
+  letter-spacing: 2px;
+  font-size: 32px;
+  color: var(--accent);
+  text-shadow: 0 0 18px rgba(0,255,255,0.4);
+  text-align: center;
+}
+.overlay-subtitle {
+  margin: 0 0 12px 0;
+  text-align: center;
+  color: var(--muted);
+}
+.overlay-hint {
+  margin: 6px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+.overlay-tiny {
+  margin-top: 2px;
+  text-align: center;
+  color: rgba(255,255,255,0.6);
+  font-size: 11px;
+}
+
+/* Upgrade buttons */
+.upgrade-btn {
+  width: 100%;
+  text-align: left;
+  margin: 10px 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: linear-gradient(135deg, rgba(12, 24, 38, 0.9), rgba(14, 12, 28, 0.9));
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.upgrade-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.45), 0 0 24px rgba(0,255,255,0.15);
+  border-color: rgba(0,255,255,0.35);
+}
+.upgrade-btn:active {
+  transform: translateY(0);
+}
+.upgrade-btn .upgrade-head { display: flex; align-items: center; justify-content: space-between; }
+.upgrade-btn .upgrade-name { font-size: 18px; }
+.upgrade-btn .upgrade-desc { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.upgrade-btn .upgrade-rarity { font-size: 11px; letter-spacing: 1px; opacity: 0.8; text-transform: uppercase; }
+
+/* Rarity colors */
+.upgrade-btn[data-rarity="common"] .upgrade-name { color: #e8f4ff; }
+.upgrade-btn[data-rarity="rare"] .upgrade-name { color: #33bbff; }
+.upgrade-btn[data-rarity="epic"] .upgrade-name { color: #cc66ff; }
+.upgrade-btn[data-rarity="legendary"] .upgrade-name { color: #ffcc55; }
+
+/* Primary action button (Play Again / Retry) */
+.upgrade-btn.primary {
+  text-align: center;
+  font-family: Orbitron, monospace;
+  font-size: 16px;
+  letter-spacing: 1px;
+  background: linear-gradient(45deg, #0b2b1a, #114d2d);
+  border-color: rgba(51,255,153,0.35);
+  box-shadow: 0 0 28px rgba(51,255,153,0.2);
+}
+.upgrade-btn.primary:hover {
+  box-shadow: 0 10px 26px rgba(0,0,0,0.45), 0 0 32px rgba(51,255,153,0.35);
+  transform: translateY(-1px);
+}

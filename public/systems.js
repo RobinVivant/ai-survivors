@@ -174,14 +174,12 @@ function loadWave(){
 
  function showVictory() {
   state.dom.upgradeOverlay.innerHTML = `
-    <div style="text-align: center; border: 2px solid #33ff33; padding: 40px; border-radius: 15px; background: rgba(0,255,0,0.1); box-shadow: 0 0 40px rgba(0,255,0,0.5);">
-      <h1 style="font-size: 52px; color: #33ff33; text-shadow: 0 0 30px #00ff00; margin-bottom: 20px;">VICTORY!</h1>
-      <div style="font-size: 24px; margin-bottom: 15px;">All Waves Cleared!</div>
-      <div style="font-size: 20px; margin-bottom: 15px;">Final Score: ${state.score}</div>
-      <div style="font-size: 18px; margin-bottom: 30px;">Total Kills: ${state.kills}</div>
-      <button class="upgrade-btn" onclick="location.reload()" style="background: linear-gradient(45deg, #00cc00, #44ff44); border-color: #77ff77; width: 250px; text-align: center;">
-        PLAY AGAIN
-      </button>
+    <div class="overlay-card">
+      <h1 class="overlay-title">VICTORY!</h1>
+      <div class="overlay-subtitle">All Waves Cleared!</div>
+      <div class="overlay-subtitle">Final Score: ${state.score}</div>
+      <div class="overlay-subtitle">Total Kills: ${state.kills}</div>
+      <button class="upgrade-btn primary" onclick="location.reload()">PLAY AGAIN</button>
     </div>
   `;
   state.dom.upgradeOverlay.style.display = 'flex';
@@ -301,8 +299,14 @@ function checkForUpgrade(){
    }
 
    state.gamePaused = true;
-   state.dom.upgradeOverlay.innerHTML = '<h2 style="font-size: 36px; margin-bottom: 10px; color: #00ffff; text-shadow: 0 0 20px #00ffff; letter-spacing: 2px;">LEVEL UP!</h2><p style="margin:0; color: #aaa; font-size: 16px; margin-bottom: 30px;">Select Your Upgrade</p>';
+   state.dom.upgradeOverlay.innerHTML = `
+     <div class="overlay-card">
+       <h2 class="overlay-title">LEVEL UP!</h2>
+       <p class="overlay-subtitle">Select Your Upgrade</p>
+     </div>
+   `;
    state.dom.upgradeOverlay.style.display = 'flex';
+   const card = state.dom.upgradeOverlay.querySelector('.overlay-card');
 
    const resumeGame = () => {
      state.gamePaused = false;
@@ -314,28 +318,22 @@ function checkForUpgrade(){
    choices.forEach((upg, i) => {
      const btn = document.createElement('button');
      btn.className = 'upgrade-btn';
-     const rarityColors = { common: '#ffffff', rare: '#0099ff', epic: '#cc00ff', legendary: '#ffaa00' };
-     const rarityColor = rarityColors[upg.rarity] || '#ffffff';
 
      btn.innerHTML = `
-       <div style="display: flex; justify-content: space-between; align-items: center;">
-         <div>
-           <div style="font-size: 20px; margin-bottom: 8px; color: ${rarityColor};">[${i + 1}] ${upg.name}</div>
-           <div style="font-size: 14px; opacity: 0.8; font-weight: 400; max-width: 280px;">${upg.description || ''}</div>
-         </div>
-         <div style="text-align: right;">
-           <div style="font-size: 12px; opacity: 0.7; text-transform: uppercase; color: ${rarityColor};">${upg.rarity || 'COMMON'}</div>
-         </div>
+       <div class="upgrade-head">
+         <div class="upgrade-name">[${i + 1}] ${upg.name}</div>
+         <div class="upgrade-rarity">${(upg.rarity || 'common').toUpperCase()}</div>
        </div>
+       <div class="upgrade-desc">${upg.description || ''}</div>
      `;
-     btn.style.borderColor = rarityColor;
+     btn.dataset.rarity = upg.rarity || 'common';
 
      btn.onclick = () => {
        applyUpgrade(upg);
        resumeGame();
        document.removeEventListener('keydown', handleKeyPress);
      };
-     state.dom.upgradeOverlay.appendChild(btn);
+     card.appendChild(btn);
    });
 
    const handleKeyPress = (e) => {
@@ -473,14 +471,12 @@ function checkForUpgrade(){
 
  function showGameOver() {
   state.dom.upgradeOverlay.innerHTML = `
-    <div style="text-align: center; border: 2px solid #ff3333; padding: 40px; border-radius: 15px; background: rgba(255,0,0,0.1); box-shadow: 0 0 40px rgba(255,0,0,0.5);">
-      <h1 style="font-size: 52px; color: #ff3333; text-shadow: 0 0 30px #ff0000; margin-bottom: 20px;">GAME OVER</h1>
-      <div style="font-size: 24px; margin-bottom: 15px;">Final Score: ${state.score}</div>
-      <div style="font-size: 20px; margin-bottom: 15px;">Kills: ${state.kills}</div>
-      <div style="font-size: 18px; margin-bottom: 30px;">Wave Reached: ${state.currentWave + 1}</div>
-      <button class="upgrade-btn" onclick="location.reload()" style="background: linear-gradient(45deg, #cc0000, #ff4444); border-color: #ff7777; width: 250px; text-align: center;">
-        RETRY
-      </button>
+    <div class="overlay-card">
+      <h1 class="overlay-title">GAME OVER</h1>
+      <div class="overlay-subtitle">Final Score: ${state.score}</div>
+      <div class="overlay-subtitle">Kills: ${state.kills}</div>
+      <div class="overlay-subtitle">Wave Reached: ${state.currentWave + 1}</div>
+      <button class="upgrade-btn primary" onclick="location.reload()">RETRY</button>
     </div>
   `;
   state.dom.upgradeOverlay.style.display = 'flex';
@@ -1096,6 +1092,8 @@ function draw(){
   });
   
   // Draw particles
+  state.dom.ctx.save();
+  state.dom.ctx.globalCompositeOperation = 'lighter';
   state.particles.forEach(p => {
     state.dom.ctx.save();
     state.dom.ctx.globalAlpha = p.life;
@@ -1122,8 +1120,11 @@ function draw(){
     state.dom.ctx.fill();
     state.dom.ctx.restore();
   });
+  state.dom.ctx.restore();
   
   // Draw bullets with glow
+  state.dom.ctx.save();
+  state.dom.ctx.globalCompositeOperation = 'lighter';
   state.bullets.forEach(b => {
     state.dom.ctx.save();
     state.dom.ctx.shadowBlur = 15;
@@ -1134,6 +1135,7 @@ function draw(){
     state.dom.ctx.fill();
     state.dom.ctx.restore();
   });
+  state.dom.ctx.restore();
   
   // Draw player with pulsing glow
   const pulseIntensity = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;

@@ -51,11 +51,11 @@ function setupInput() {
         state.gamePaused = !state.gamePaused;
         if (state.gamePaused) {
           state.dom.upgradeOverlay.innerHTML = `
-            <div style="text-align: center; border: 2px solid #00ffff; padding: 40px; border-radius: 15px; background: rgba(0,255,255,0.1); box-shadow: 0 0 40px rgba(0,255,255,0.5);">
-              <h2 style="font-size: 36px; margin-bottom: 20px; color: #00ffff; text-shadow: 0 0 20px #00ffff;">PAUSED</h2>
-              <div style="font-size: 18px; margin-bottom: 20px;">Press P or ESC to resume</div>
-              <div style="font-size: 14px; opacity: 0.8; margin-bottom: 10px;">Controls: WASD or Arrow Keys to move, Space to dash</div>
-              <div style="font-size: 12px; opacity: 0.6;">Game auto-pauses during upgrades</div>
+            <div class="overlay-card">
+              <h2 class="overlay-title">PAUSED</h2>
+              <div class="overlay-subtitle">Press P or ESC to resume</div>
+              <div class="overlay-hint">Controls: WASD or Arrow Keys to move, Space to dash</div>
+              <div class="overlay-tiny">Game auto-pauses during upgrades</div>
             </div>
           `;
           state.dom.upgradeOverlay.style.display = 'flex';
