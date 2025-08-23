@@ -39,6 +39,7 @@ function createTrailParticle(x, y, color) {
 }
 
 function createLightningEffect(x1, y1, x2, y2, color) {
+  if (state.particles.length >= MAX_PARTICLES) return;
   state.particles.push({
     x: x1, y: y1, x2, y2,
     size: 2,
@@ -1142,6 +1143,8 @@ function maybeNextWave(){
 function draw(){
   state.dom.ctx.save();
   state.dom.ctx.translate(state.cameraShake.x, state.cameraShake.y);
+  state.dom.ctx.globalCompositeOperation = 'source-over';
+  state.dom.ctx.globalAlpha = 1;
   
    // Background gradient
   const gradient = state.dom.bgGradient;
