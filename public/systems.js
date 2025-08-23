@@ -167,6 +167,12 @@ function playSound(type, frequency = 440, duration = 0.1, volume = 0.1) {
 // Wave helpers
 // --------------------------------------------------
 function prepareWaveSpawner(names){
+  // Scale spawn pacing with wave for better flow
+  const w = state.currentWave || 0;
+  state.wave.spawnPerBurst = Math.min(12, 5 + Math.floor(w / 2)); // +1 every 2 waves, cap 12
+  state.wave.cooldownMs   = Math.max(160, 380 - w * 14);          // faster later, floor 160ms
+  state.wave.clusterRadius = Math.min(160, 60 + w * 5);           // wider clusters later
+
   state.wave.queue = Array.isArray(names) ? [...names] : [];
   state.wave.nextAt = performance.now(); // spawn immediately
 }
@@ -288,8 +294,14 @@ function createEnemyInstance(name){
 // Upgrade system
 // --------------------------------------------------
 function checkForUpgrade(){
-  if(state.kills>=state.nextUpgradeAt){
-    state.nextUpgradeAt+=8;
+  if (state.kills >= state.nextUpgradeAt) {
+    const upgradesSoFar = state.upgradesTaken || 0;
+    const base = 18;              // base kills needed
+    const perUpgrade = 7;         // escalate per upgrade taken
+    const waveFactor = Math.floor((state.currentWave || 0) / 2) * 4; // more kills needed later
+    const increment = base + upgradesSoFar * perUpgrade + waveFactor;
+    // Set next threshold relative to current kills to avoid instant chain level-ups
+    state.nextUpgradeAt = state.kills + increment;
     presentUpgradeChoices();
   }
 }
@@ -534,6 +546,8 @@ function checkForUpgrade(){
      default:
        break;
    }
+   // Track how many upgrades have been taken to scale future thresholds
+   state.upgradesTaken = (state.upgradesTaken || 0) + 1;
  }
 
  function showGameOver() {

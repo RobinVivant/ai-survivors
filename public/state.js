@@ -17,9 +17,10 @@ export const state = {
   score: 0,
   kills: 0,
   coins: 0,
-  nextUpgradeAt: 10,
+  nextUpgradeAt: 20,
   lastFrameTime: 0,
   scoreMultiplier: 1,
+  upgradesTaken: 0,
   // wave spawner
   wave: { queue: [], spawnPerBurst: 8, cooldownMs: 300, nextAt: 0, clusterRadius: 60 },
   // runtime/lifecycle

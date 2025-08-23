@@ -72,6 +72,7 @@ export async function getAIConfigFromOpenRouter() {
         -   Each inner array represents one wave.
         -   Each string is the \\\`name\\\` of an enemy to spawn in that wave.
         -   Create a progression: start easy, introduce new enemies gradually, mix them up, and create challenging combinations. End with a boss wave.
+        -   Spawn count targets to slow level-ups: Early waves 16–22 total enemies; Mid 24–36; Late 36–45. Boss waves: 1 boss plus 20–30 additional enemies. Avoid more than 45 enemies in any non-boss wave.
 
     4.  **\\\`upgrades\\\`** (array of 15-25 objects):
         -   \\\`name\\\`: Descriptive name (e.g., "Neural Overclock", "Quantum Shield", "Purchase: Data Shredder").
@@ -107,7 +108,7 @@ export async function getAIConfigFromOpenRouter() {
           },
           {role: "user", content: prompt},
         ],
-        temperature: 1.2,
+        temperature: 0.9,
         stream: false,
       }),
     });
@@ -158,29 +159,27 @@ export async function getAIConfigFromOpenRouter() {
         { name: "Laser Storm",   dmg: 3, fireRate: 6.5,bulletSpeed: 10, bulletSize: 2, bulletColor: "#ffff66", price: 230, description: "Shredding light", splitShot: 2, spread: 0.12 }
       ],
       waves: [
-        // Early game: ~24–36 spawns per wave
-        Array(24).fill("DataMite"),
-        [...Array(16).fill("DataMite"), ...Array(12).fill("VirusSwarm")],
-        [...Array(18).fill("VirusSwarm"), ...Array(6).fill("GlitchCrawler"), ...Array(8).fill("DataMite")],
-        [...Array(24).fill("VirusSwarm"), ...Array(6).fill("NeuralHacker")],
-        [...Array(16).fill("DataMite"), ...Array(12).fill("QuantumWraith"), ...Array(8).fill("GlitchCrawler")],
-        // Mid game: ~50–70 spawns per wave
-        [...Array(30).fill("VirusSwarm"), ...Array(10).fill("FirewallGolem"), ...Array(12).fill("NeuralHacker")],
-        [...Array(24).fill("QuantumWraith"), ...Array(24).fill("VirusSwarm"), ...Array(8).fill("FractalSwarm")],
-        [...Array(18).fill("FirewallGolem"), ...Array(18).fill("GlitchCrawler"), ...Array(12).fill("NeuralHacker"), ...Array(10).fill("GhostKernel")],
-        [...Array(22).fill("FractalSwarm"), ...Array(20).fill("VirusSwarm"), ...Array(12).fill("QuantumWraith"), ...Array(8).fill("SentinelSniper")],
-        // Late mid: ~70–90
-        [...Array(30).fill("FractalSwarm"), ...Array(24).fill("QuantumWraith"), ...Array(16).fill("GhostKernel"), ...Array(8).fill("OverclockedBrute")],
-        [...Array(36).fill("VirusSwarm"), ...Array(20).fill("GlitchCrawler"), ...Array(12).fill("SentinelSniper"), ...Array(8).fill("FirewallGolem")],
-        // Late: ~90–120
-        [...Array(40).fill("QuantumWraith"), ...Array(20).fill("FractalSwarm"), ...Array(20).fill("GhostKernel"), ...Array(12).fill("OverclockedBrute")],
-        [...Array(36).fill("FractalSwarm"), ...Array(24).fill("SentinelSniper"), ...Array(24).fill("GlitchCrawler"), ...Array(12).fill("FirewallGolem")],
-        [...Array(50).fill("VirusSwarm"), ...Array(18).fill("OverclockedBrute"), ...Array(16).fill("SentinelSniper")],
-        // Pre-boss
-        [...Array(36).fill("GhostKernel"), ...Array(24).fill("QuantumWraith"), ...Array(18).fill("OverclockedBrute"), ...Array(12).fill("FirewallGolem")],
+        // Early game: 16–22 spawns
+        Array(16).fill("DataMite"),
+        [...Array(12).fill("DataMite"), ...Array(6).fill("VirusSwarm")],
+        [...Array(10).fill("VirusSwarm"), ...Array(6).fill("GlitchCrawler"), ...Array(4).fill("DataMite")],
+        [...Array(12).fill("VirusSwarm"), ...Array(4).fill("NeuralHacker")],
+        [...Array(10).fill("DataMite"), ...Array(8).fill("QuantumWraith"), ...Array(4).fill("GlitchCrawler")],
+        // Mid game: 24–36 spawns
+        [...Array(16).fill("VirusSwarm"), ...Array(6).fill("FirewallGolem"), ...Array(6).fill("NeuralHacker")],
+        [...Array(14).fill("QuantumWraith"), ...Array(10).fill("VirusSwarm"), ...Array(6).fill("FractalSwarm")],
+        [...Array(12).fill("FirewallGolem"), ...Array(10).fill("GlitchCrawler"), ...Array(8).fill("NeuralHacker"), ...Array(6).fill("GhostKernel")],
+        [...Array(12).fill("FractalSwarm"), ...Array(10).fill("VirusSwarm"), ...Array(8).fill("QuantumWraith"), ...Array(6).fill("SentinelSniper")],
+        // Late: 36–45 spawns
+        [...Array(14).fill("FractalSwarm"), ...Array(12).fill("QuantumWraith"), ...Array(8).fill("GhostKernel"), ...Array(4).fill("OverclockedBrute")],
+        [...Array(16).fill("VirusSwarm"), ...Array(10).fill("GlitchCrawler"), ...Array(8).fill("SentinelSniper"), ...Array(6).fill("FirewallGolem")],
+        [...Array(16).fill("QuantumWraith"), ...Array(10).fill("FractalSwarm"), ...Array(8).fill("GhostKernel"), ...Array(6).fill("OverclockedBrute")],
+        [...Array(14).fill("FractalSwarm"), ...Array(10).fill("SentinelSniper"), ...Array(10).fill("GlitchCrawler"), ...Array(6).fill("FirewallGolem")],
+        [...Array(18).fill("VirusSwarm"), ...Array(10).fill("OverclockedBrute"), ...Array(8).fill("SentinelSniper")],
+        [...Array(12).fill("GhostKernel"), ...Array(10).fill("QuantumWraith"), ...Array(8).fill("OverclockedBrute"), ...Array(6).fill("FirewallGolem")],
         // Boss waves
-        [...Array(60).fill("FractalSwarm"), "AIOverlord"],
-        [...Array(60).fill("QuantumWraith"), "KernelTyrant"]
+        [...Array(22).fill("FractalSwarm"), "AIOverlord"],
+        [...Array(22).fill("QuantumWraith"), "KernelTyrant"]
       ],
       upgrades: [
         { name: "Neural Overclock",   effect: {type: "speed", value: 0.6},     description: "Boost movement speed",      rarity: "rare" },
