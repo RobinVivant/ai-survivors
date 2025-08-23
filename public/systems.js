@@ -177,6 +177,8 @@ function loadWave(){
 }
 
  function showVictory() {
+  state.gamePaused = true;
+  window.__updateLoopRunning && window.__updateLoopRunning();
   state.dom.upgradeOverlay.innerHTML = `
     <div class="overlay-card">
       <h1 class="overlay-title">VICTORY!</h1>
