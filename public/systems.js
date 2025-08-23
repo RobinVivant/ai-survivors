@@ -941,16 +941,7 @@ function handleCollisions(){
             };
             state.bullets.push(chainBullet);
             
-            // Draw chain lightning effect
-            state.dom.ctx.save();
-            state.dom.ctx.strokeStyle = b.color;
-            state.dom.ctx.lineWidth = 2;
-            state.dom.ctx.globalAlpha = 0.8;
-            state.dom.ctx.beginPath();
-            state.dom.ctx.moveTo(e.x, e.y);
-            state.dom.ctx.lineTo(nearestEnemy.x, nearestEnemy.y);
-            state.dom.ctx.stroke();
-            state.dom.ctx.restore();
+            createLightningEffect(e.x, e.y, nearestEnemy.x, nearestEnemy.y, b.color);
           }
         }
         
