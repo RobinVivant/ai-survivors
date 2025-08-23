@@ -165,6 +165,37 @@ function playSound(type, frequency = 440, duration = 0.1, volume = 0.1) {
 // --------------------------------------------------
 // Wave helpers
 // --------------------------------------------------
+function prepareWaveSpawner(names){
+  state.wave.queue = Array.isArray(names) ? [...names] : [];
+  state.wave.nextAt = performance.now(); // spawn immediately
+}
+
+function updateWaveSpawner(){
+  if (!state.wave.queue || state.wave.queue.length === 0) return;
+  if (performance.now() < state.wave.nextAt) return;
+
+  const burst = Math.min(state.wave.spawnPerBurst || 8, state.wave.queue.length);
+  const edge = Math.floor(Math.random() * 4);
+  let cx, cy;
+  if (edge === 0) { cx = Math.random()*window.innerWidth; cy = -20; }
+  else if (edge === 1) { cx = window.innerWidth + 20; cy = Math.random()*window.innerHeight; }
+  else if (edge === 2) { cx = Math.random()*window.innerWidth; cy = window.innerHeight + 20; }
+  else { cx = -20; cy = Math.random()*window.innerHeight; }
+
+  for (let i = 0; i < burst; i++) {
+    const name = state.wave.queue.shift();
+    const e = createEnemyInstance(name);
+    const r = state.wave.clusterRadius || 60;
+    const rx = (Math.random() - 0.5) * r * 2;
+    const ry = (Math.random() - 0.5) * r * 2;
+    e.x = Math.max(-20, Math.min(window.innerWidth + 20, cx + rx));
+    e.y = Math.max(-20, Math.min(window.innerHeight + 20, cy + ry));
+    state.activeEnemies.push(e);
+  }
+
+  state.wave.nextAt = performance.now() + (state.wave.cooldownMs || 300);
+}
+
 function loadWave(){
   if(state.currentWave>=state.cfg.waves.length){
     showVictory();
@@ -172,7 +203,9 @@ function loadWave(){
     return;
   }
   const names = state.cfg.waves[state.currentWave];
-  state.activeEnemies = names.map(createEnemyInstance);
+  // Prepare clustered spawns over time instead of spawning everything at once
+  state.activeEnemies.length = 0;
+  prepareWaveSpawner(names);
   updateUI();
 }
 
@@ -230,13 +263,19 @@ function createEnemyInstance(name){
     attempts++;
   } while (Math.hypot(x - state.player.x, y - state.player.y) < minDistance && attempts < 10);
   
+  const wave = Math.max(0, state.currentWave || 0);
+  const hpScale = 1 + wave * 0.15;
+  const speedScale = 1 + wave * 0.03;
+  const pointsScale = 1 + wave * 0.25;
+
   return {
     ...def,
     x, y,
     size: def.size || 8,
-    hp: def.hp || 10,
-    maxHp: def.hp || 10,
-    points: def.points || 1,
+    speed: (def.speed || 1) * speedScale,
+    hp: Math.ceil((def.hp || 10) * hpScale),
+    maxHp: Math.ceil((def.hp || 10) * hpScale),
+    points: Math.max(1, Math.ceil((def.points || 1) * pointsScale)),
     damage: def.damage || 1,
     spawnTime: Date.now(),
     splitLevel: 0,
@@ -249,7 +288,7 @@ function createEnemyInstance(name){
 // --------------------------------------------------
 function checkForUpgrade(){
   if(state.kills>=state.nextUpgradeAt){
-    state.nextUpgradeAt+=10;
+    state.nextUpgradeAt+=8;
     presentUpgradeChoices();
   }
 }
@@ -260,22 +299,23 @@ function checkForUpgrade(){
 
    const aiPassivePool = (state.cfg.upgrades || [])
      .filter(u => u && u.effect && u.effect.type && u.effect.type !== 'weapon' && u.effect.type !== 'upgrade_weapon');
-   
-   // Option 1: Upgrade an existing weapon
+
+   // 1) Upgrade an existing weapon, if any and below max level
    if (ownedWeapons.length > 0) {
-     const weaponToUpgrade = ownedWeapons[Math.floor(Math.random() * ownedWeapons.length)];
-     const currentLevel = weaponToUpgrade.level || 1;
-     if (currentLevel < 5) { // Max level 5
+     const upgradables = ownedWeapons.filter(w => (w.level || 1) < 5);
+     if (upgradables.length > 0) {
+       const weaponToUpgrade = upgradables[Math.floor(Math.random() * upgradables.length)];
+       const currentLevel = weaponToUpgrade.level || 1;
        choices.push({
          name: `Upgrade ${weaponToUpgrade.name} (Lvl ${currentLevel + 1})`,
          description: getWeaponUpgradeDescription(weaponToUpgrade.name, currentLevel + 1),
-         rarity: 'rare',
+         rarity: currentLevel >= 3 ? 'epic' : 'rare',
          effect: { type: 'upgrade_weapon', value: weaponToUpgrade.name }
        });
      }
    }
 
-   // Option 2: Add a new weapon
+   // 2) Add a new weapon if available
    const availableWeapons = state.cfg.weapons.filter(w => !state.player.weapons.includes(state.cfg.weapons.indexOf(w)));
    if (availableWeapons.length > 0) {
      const weaponToAdd = availableWeapons[Math.floor(Math.random() * availableWeapons.length)];
@@ -287,22 +327,40 @@ function checkForUpgrade(){
      });
    }
 
-   // Option 3: General passive upgrades
-   const passiveUpgrades = [
-     { name: "Hyper Speed", effect: { type: "speed", value: 0.5 }, description: "Greatly increase movement speed.", rarity: "common" },
+   // 3) Strong passive
+   const passives = [
+     { name: "Hyper Speed", effect: { type: "speed", value: 0.6 }, description: "Greatly increase movement speed.", rarity: "rare" },
      { name: "Full Heal", effect: { type: "health", value: state.player.maxHp }, description: "Restore all health.", rarity: "common" },
-     { name: "Damage Core", effect: { type: "damage", value: 2 }, description: "+2 damage to all weapons.", rarity: "rare" },
-     { name: "Overdrive", effect: { type: "firerate", value: 0.3 }, description: "Massively increase fire rate.", rarity: "rare" },
-     { name: "Titanium Hull", effect: { type: "maxhealth", value: 10 }, description: "+10 max health.", rarity: "common" },
-     { name: "Bullet Velocity", effect: { type: "bulletspeed", value: 1 }, description: "Bullets travel much faster.", rarity: "common" },
+     { name: "Damage Core", effect: { type: "damage", value: 3 }, description: "+3 damage to all weapons.", rarity: "epic" },
+     { name: "Overdrive", effect: { type: "firerate", value: 0.5 }, description: "Massively increase fire rate.", rarity: "epic" },
+     { name: "Titanium Hull", effect: { type: "maxhealth", value: 15 }, description: "+15 max health.", rarity: "rare" },
+     { name: "Bullet Velocity", effect: { type: "bulletspeed", value: 1.5 }, description: "Bullets travel much faster.", rarity: "common" },
+     { name: "Piercing Matrix", effect: { type: "piercing", value: 1 }, description: "Bullets pierce +1 enemy.", rarity: "rare" },
+     { name: "Homing Algorithm", effect: { type: "homing", value: 0.08 }, description: "Smoother bullet homing.", rarity: "epic" },
+     { name: "Explosive Rounds", effect: { type: "explosive", value: 25 }, description: "Add explosion damage.", rarity: "epic" },
      ...aiPassivePool
    ];
-   choices.push(passiveUpgrades[Math.floor(Math.random() * passiveUpgrades.length)]);
-
-   // Ensure there are always 3 choices
-   while (choices.length < 3) {
-     choices.push(passiveUpgrades[Math.floor(Math.random() * passiveUpgrades.length)]);
+   if (choices.length < 2) {
+     // Ensure at least 2 slots are filled before picking passive
+     const fallbackW = availableWeapons[0] || ownedWeapons[0];
+     if (fallbackW && !choices.find(c => c.effect?.type === 'weapon')) {
+       choices.push({
+         name: `New Weapon: ${fallbackW.name}`,
+         description: `Adds the ${fallbackW.name} to your arsenal.`,
+         rarity: 'epic',
+         effect: { type: 'weapon', value: fallbackW.name }
+       });
+     }
    }
+   // Always add one passive
+   choices.push(passives[Math.floor(Math.random() * passives.length)]);
+
+   // Ensure we have exactly 3 choices (fill with different passives if needed)
+   while (choices.length < 3) {
+     const cand = passives[Math.floor(Math.random() * passives.length)];
+     if (!choices.some(c => c.name === cand.name)) choices.push(cand);
+   }
+   choices.splice(3); // trim in case of overflow
 
    state.gamePaused = true;
    state.dom.upgradeOverlay.innerHTML = `
@@ -496,6 +554,7 @@ function checkForUpgrade(){
 // Update
 // --------------------------------------------------
 function update(ts, deltaTime){
+  updateWaveSpawner();
   handlePlayerMovement(deltaTime);
   handleShooting(ts);
   moveEnemies(deltaTime);
@@ -1058,7 +1117,7 @@ function cleanupEntities(){
 }
 
 function maybeNextWave(){
-  if(!state.activeEnemies.length && state.currentWave<state.cfg.waves.length){
+  if(state.wave.queue.length === 0 && !state.activeEnemies.length && state.currentWave<state.cfg.waves.length){
     // Wave completion bonus
     const waveBonus = (state.currentWave + 1) * 50;
     state.score += waveBonus;

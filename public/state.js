@@ -20,6 +20,8 @@ export const state = {
   nextUpgradeAt: 10,
   lastFrameTime: 0,
   scoreMultiplier: 1,
+  // wave spawner
+  wave: { queue: [], spawnPerBurst: 8, cooldownMs: 300, nextAt: 0, clusterRadius: 60 },
   // runtime/lifecycle
   running: false,
   isVisible: true,
