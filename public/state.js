@@ -1,0 +1,51 @@
+export const state = {
+  // core state
+  keys: {},
+  loading: true,
+  gamePaused: false,
+  player: null,
+  cfg: {
+    enemies: [],
+    weapons: [],
+    waves: [],
+    upgrades: [],
+    background: '#331a33',
+  },
+
+  // progression
+  currentWave: 0,
+  score: 0,
+  kills: 0,
+  coins: 0,
+  nextUpgradeAt: 10,
+  lastFrameTime: 0,
+  scoreMultiplier: 1,
+
+  // entities and fx
+  activeEnemies: [],
+  bullets: [],
+  particles: [],
+  cameraShake: { x: 0, y: 0, intensity: 0, duration: 0 },
+  stars: [],
+
+  // environment
+  audioContext: null,
+  dom: {
+    canvas: null,
+    ctx: null,
+    uiDiv: null,
+    upgradeOverlay: null,
+    healthFill: null,
+    waveIndicator: null,
+  },
+};
+
+export function initStars(count = 200) {
+  state.stars = Array.from({ length: count }, () => ({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    size: Math.random() * 2 + 0.5,
+    speed: Math.random() * 0.5 + 0.1,
+    opacity: Math.random() * 0.8 + 0.2,
+  }));
+}
