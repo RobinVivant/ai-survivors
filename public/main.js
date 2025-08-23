@@ -3,9 +3,16 @@ import { state, initStars } from './state.js';
 import { update, draw, loadWave, showGameOver, showWaveIndicator } from './systems.js';
 
 function resizeCanvas() {
-  if (!state.dom.canvas) return;
-  state.dom.canvas.width = window.innerWidth;
-  state.dom.canvas.height = window.innerHeight;
+  if (!state.dom.canvas || !state.dom.ctx) return;
+  const dpr = Math.max(window.devicePixelRatio || 1, 1);
+  state.dom.canvas.width = Math.floor(window.innerWidth * dpr);
+  state.dom.canvas.height = Math.floor(window.innerHeight * dpr);
+  state.dom.canvas.style.width = window.innerWidth + 'px';
+  state.dom.canvas.style.height = window.innerHeight + 'px';
+  state.dom.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (state.stars && state.stars.length) {
+    initStars(state.stars.length);
+  }
 }
 
 function setupDOM() {
@@ -118,7 +125,7 @@ function gameLoop(ts) {
     return;
   }
 
-  const deltaTime = ts - state.lastFrameTime;
+  const deltaTime = state.lastFrameTime ? (ts - state.lastFrameTime) : 16.67;
   state.lastFrameTime = ts;
 
   if (!state.gamePaused) {

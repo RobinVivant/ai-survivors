@@ -34,16 +34,27 @@ function createTrailParticle(x, y, color) {
   });
 }
 
+function createLightningEffect(x1, y1, x2, y2, color) {
+  state.particles.push({
+    x: x1, y: y1, x2, y2,
+    size: 2,
+    life: 1,
+    decay: 0.25,
+    color,
+    type: 'lightning'
+  });
+}
+
 function updateParticles(deltaTime) {
   const timeMultiplier = deltaTime / 16.67; // normalize to 60fps
   
   for (let i = state.particles.length - 1; i >= 0; i--) {
     const p = state.particles[i];
-    p.x += p.vx * timeMultiplier;
-    p.y += p.vy * timeMultiplier;
-    p.vx *= 0.98;
-    p.vy *= 0.98;
-    p.life -= p.decay * timeMultiplier;
+    p.x += (typeof p.vx === 'number' ? p.vx : 0) * timeMultiplier;
+    p.y += (typeof p.vy === 'number' ? p.vy : 0) * timeMultiplier;
+    if (typeof p.vx === 'number') p.vx *= 0.98;
+    if (typeof p.vy === 'number') p.vy *= 0.98;
+    p.life -= (p.decay || 0.02) * timeMultiplier;
     
     if (p.life <= 0) {
       state.particles.splice(i, 1);
@@ -317,6 +328,7 @@ function checkForUpgrade(){
      btn.onclick = () => {
        applyUpgrade(upg);
        resumeGame();
+       document.removeEventListener('keydown', handleKeyPress);
      };
      state.dom.upgradeOverlay.appendChild(btn);
    });
@@ -1061,6 +1073,17 @@ function draw(){
     if (p.type === 'explosion') {
       state.dom.ctx.shadowBlur = 10;
       state.dom.ctx.shadowColor = p.color;
+    } else if (p.type === 'lightning') {
+      state.dom.ctx.save();
+      state.dom.ctx.globalAlpha = p.life * 0.8;
+      state.dom.ctx.strokeStyle = p.color;
+      state.dom.ctx.lineWidth = p.size || 2;
+      state.dom.ctx.beginPath();
+      state.dom.ctx.moveTo(p.x, p.y);
+      state.dom.ctx.lineTo(p.x2, p.y2);
+      state.dom.ctx.stroke();
+      state.dom.ctx.restore();
+      return;
     }
     
     state.dom.ctx.beginPath();
