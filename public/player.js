@@ -8,7 +8,7 @@ export function handlePlayerMovement(deltaTime) {
     state.player.dash.lastUsed = Date.now();
     state.player.invulnerable = Date.now() + state.player.dash.duration;
     const dashSpeed = 15;
-    let dashAngle = 0;
+    let dashAngle;
     const movementSpeed = Math.hypot(state.player.velocity.x, state.player.velocity.y);
     if (movementSpeed > 0.1) {
       dashAngle = Math.atan2(state.player.velocity.y, state.player.velocity.x);

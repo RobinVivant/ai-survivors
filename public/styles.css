@@ -220,7 +220,7 @@ html, body {
 
 #healthFill {
     height: 100%;
-    width: 0%;
+    width: 0;
     background: linear-gradient(90deg, #ff4d6d, #ff2ea6);
     box-shadow: 0 0 16px rgba(255, 46, 166, 0.35);
     transition: width 180ms ease;
