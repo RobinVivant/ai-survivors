@@ -1,12 +1,12 @@
 import { serve } from "bun";
 import { getAsset } from "./assets";
-import { spawn } from "bun";
+import { Webview } from "webview-bun";
 
 console.log("Starting AI Survivors desktop app...");
 
 // Start embedded HTTP server on a fixed port for debugging
 const server = serve({
-  port: 9999, // Use fixed port for easier debugging
+  port: 0, // let OS pick an available port
   fetch: async (req) => {
     const url = new URL(req.url);
     const pathname = url.pathname === "/" ? "/index.html" : url.pathname;
@@ -40,44 +40,30 @@ const server = serve({
 });
 
 console.log(`✓ Server running on http://localhost:9999`);
-console.log(`✓ Opening browser window...`);
+const addr = `http://localhost:${server.port}/`;
+console.log(`✓ Launching WebView: ${addr}`);
 
-// Fallback: Open in system browser if webview doesn't work
-try {
-  // Try to open with system browser as fallback
-  let openCmd;
-  if (process.platform === "darwin") {
-    openCmd = "open";
-  } else if (process.platform === "win32") {
-    openCmd = "start";
-  } else {
-    openCmd = "xdg-open";
-  }
-  
-  spawn([openCmd, "http://localhost:9999"], { 
-    stdio: "ignore",
-    detached: true 
-  });
-  
-  console.log(`✓ Game opened in browser at http://localhost:9999`);
-  console.log("Press Ctrl+C to stop the server");
-  
-} catch (error) {
-  console.log("Could not open browser automatically.");
-  console.log("Please open http://localhost:9999 in your browser manually");
-}
+const webview = new Webview();
+webview.width = 1280;
+webview.height = 800;
+webview.title = "AI Survivors";
+webview.navigate(addr);
 
-// Handle cleanup
 process.on('SIGINT', () => {
-  console.log("\nShutting down server...");
+  console.log("\nShutting down...");
+  try { webview.terminate?.(); } catch {}
   server.stop();
   process.exit(0);
 });
-
 process.on('SIGTERM', () => {
+  try { webview.terminate?.(); } catch {}
   server.stop();
   process.exit(0);
 });
 
-// Keep the process alive
-setInterval(() => {}, 1000);
+// Blocks until the window is closed
+webview.run();
+
+// Window closed -> stop server and exit
+server.stop();
+process.exit(0);

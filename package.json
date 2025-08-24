@@ -5,7 +5,8 @@
     "dev": "bun run server",
     "server": "bun run server/server.ts",
     "build:web": "bash scripts/build.sh",
-    "build:desktop": "bash scripts/build-desktop.sh"
+    "build:desktop": "bash scripts/build-desktop.sh",
+    "desktop": "bun run server/desktop.ts"
   },
   "devDependencies": {
     "webview-bun": "^2.4.0"
