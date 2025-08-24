@@ -119,7 +119,9 @@ export function handleShooting(ts) {
           ...bullet,
           dx: Math.cos(splitAngle) * speed,
           dy: Math.sin(splitAngle) * speed,
-          splitShot: 0
+          splitShot: 0,
+          travel: 0,
+          maxDist
         });
       }
     }
