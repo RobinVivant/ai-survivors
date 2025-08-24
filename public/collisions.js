@@ -200,9 +200,11 @@ export function handleCollisions() {
   for (let i = state.pickups.length - 1; i >= 0; i--) {
     const p = state.pickups[i];
     const dist = Math.hypot(p.x - state.player.x, p.y - state.player.y);
+    // Small leniency so pulsing/diamond/nugget shapes don’t orbit forever at the edge
+    const leniency = 4 + ((p.type === 'diamond' || p.type === 'nugget') ? 3 : 0);
     const touchR = (state.player.size || 0) + (p.size || 0);
     const baseCollectR = state.player.coinCollectRadius || 0;
-    const collectR = Math.max(touchR, baseCollectR);
+    const collectR = Math.max(touchR, baseCollectR) + leniency;
     if (dist <= collectR) {
       if (p.type === 'heal') {
         if (state.player.hp >= state.player.maxHp) continue; // leave for later

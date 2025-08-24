@@ -95,6 +95,12 @@ export function draw() {
       state.dom.ctx.closePath();
       state.dom.ctx.fill();
       state.dom.ctx.stroke();
+    } else if (pu.type === 'nugget') {
+      state.dom.ctx.beginPath();
+      // draw a square “nugget”
+      state.dom.ctx.rect(pu.x - r, pu.y - r, r * 2, r * 2);
+      state.dom.ctx.fill();
+      state.dom.ctx.stroke();
     } else {
       state.dom.ctx.beginPath();
       state.dom.ctx.arc(pu.x, pu.y, r, 0, Math.PI * 2);
