@@ -72,14 +72,20 @@ export function draw() {
   state.dom.ctx.globalCompositeOperation = 'lighter';
   state.pickups.forEach(pu => {
     state.dom.ctx.save();
-    const t = (Date.now() * 0.005 + pu.x + pu.y) % (Math.PI * 2);
-    const pulse = 1 + Math.sin(t) * 0.1;
+    const now = Date.now();
+    const totalLife = (pu.expireAt && pu.spawnAt) ? (pu.expireAt - pu.spawnAt) : 20000;
+    const timeLeft = pu.expireAt ? Math.max(0, pu.expireAt - now) : totalLife;
+    const urgency = Math.max(0, Math.min(1, 1 - timeLeft / totalLife)); // 0 -> fresh, 1 -> expiring
+    const speed = 0.004 + urgency * 0.06;
+    const t = (now * speed + pu.x + pu.y) % (Math.PI * 2);
+    const pulse = 1 + Math.sin(t) * (0.1 + 0.3 * urgency);
     const r = pu.size * pulse;
-    state.dom.ctx.shadowBlur = 12;
+    state.dom.ctx.shadowBlur = 12 + 24 * urgency;
     state.dom.ctx.shadowColor = pu.color;
     state.dom.ctx.fillStyle = pu.color;
     state.dom.ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-    state.dom.ctx.lineWidth = 1;
+    state.dom.ctx.lineWidth = 1 + urgency;
+    state.dom.ctx.globalAlpha = 0.9 + 0.1 * urgency; // subtle glow boost near expiry
     if (pu.type === 'diamond') {
       state.dom.ctx.beginPath();
       state.dom.ctx.moveTo(pu.x, pu.y - r);
@@ -117,29 +123,20 @@ export function draw() {
   state.dom.ctx.globalCompositeOperation = 'lighter';
   state.dom.ctx.setLineDash([6, 4]);
   const mult = state.player.bulletRangeMult || 1;
+  const unit = state.rangeUnitPx || 500;
   const ranges = state.player.weapons.map(wi => {
     const w = state.cfg.weapons[wi];
     if (!w) return 0;
-    const base = w.range ? w.range * 400 : (state.player.bulletRange || 700);
+    const base = w.range ? w.range * unit : (state.player.bulletRange || unit * 2);
     return base * mult;
   });
-  const fallbackRange = (state.player.bulletRange || 700) * mult;
+  const fallbackRange = (state.player.bulletRange || unit * 2) * mult;
   const weaponRange = ranges.length ? Math.max(...ranges) : fallbackRange;
   state.dom.ctx.strokeStyle = 'rgba(0,255,255,0.20)';
   state.dom.ctx.beginPath();
   state.dom.ctx.arc(state.player.x, state.player.y, weaponRange, 0, Math.PI * 2);
   state.dom.ctx.stroke();
   state.dom.ctx.setLineDash([]);
-  // Coin magnet radius
-  state.dom.ctx.strokeStyle = 'rgba(255,221,85,0.20)';
-  state.dom.ctx.beginPath();
-  state.dom.ctx.arc(state.player.x, state.player.y, state.player.coinMagnetRadius || 100, 0, Math.PI * 2);
-  state.dom.ctx.stroke();
-  // Coin collect radius
-  state.dom.ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-  state.dom.ctx.beginPath();
-  state.dom.ctx.arc(state.player.x, state.player.y, state.player.coinCollectRadius || (state.player.size + 8), 0, Math.PI * 2);
-  state.dom.ctx.stroke();
   state.dom.ctx.restore();
 
   state.activeEnemies.forEach(e => {

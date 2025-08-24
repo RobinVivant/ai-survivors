@@ -2,6 +2,7 @@ export const state = {
   // core state
   keys: {},
   loading: true,
+  rangeUnitPx: 500,
   gamePaused: false,
   player: null,
   cfg: {

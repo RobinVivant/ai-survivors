@@ -187,7 +187,7 @@ async function init() {
     y: window.innerHeight / 2,
     baseSpeed: 3.6,
     speed: 3.6,
-    size: 14,
+    size: 22,
     hp: 60,
     maxHp: 60,
     weapons: state.cfg.weapons.length ? [0] : [],
@@ -196,7 +196,7 @@ async function init() {
     acceleration: 0.3,
     friction: 0.85,
     dash: {ready: true, duration: 240, cooldown: 800, lastUsed: 0, speed: 18, damage: 4, damageRadius: 26, startedAt: 0, activeUntil: 0},
-    bulletRange: 800,         // px
+    bulletRange: 1100,         // px
     bulletRangeMult: 1,       // global multiplier from upgrades
     coinMagnetRadius: 140,    // px
     coinCollectRadius: 28,    // px

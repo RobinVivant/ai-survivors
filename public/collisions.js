@@ -16,9 +16,9 @@ function computeCoinDrop(e) {
 
 function spawnPickups(amount, x, y) {
   const denoms = [
-    {type: 'diamond', value: 10, color: '#66e0ff', size: 6},
-    {type: 'lingo',   value: 5,  color: '#ff66cc', size: 5},
-    {type: 'coin',    value: 1,  color: '#ffdd55', size: 4},
+    {type: 'lingo',   value: 15, color: '#cc33ff', size: 9}, // highest value, most purple, largest
+    {type: 'diamond', value: 7,  color: '#66e0ff', size: 7},
+    {type: 'coin',    value: 1,  color: '#ffdd55', size: 5},
   ];
   let remaining = Math.floor(amount);
   if (remaining <= 0) return;
