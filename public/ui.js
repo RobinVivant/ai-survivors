@@ -22,6 +22,27 @@ export function updateUI() {
   const timeLeftMs = state.wave?.active ? Math.max(0, state.wave.endAt - performance.now()) : 0;
   const secsLeft = Math.ceil(timeLeftMs / 1000);
 
+  // Run status bar
+  if (state.dom.runFill) {
+    if (state.wave?.active) {
+      const total = state.wave.durationMs || 0;
+      const elapsed = Math.max(0, total - timeLeftMs);
+      const pct = total ? Math.max(0, Math.min(1, elapsed / total)) : 0;
+      state.dom.runFill.style.width = Math.round(pct * 100) + '%';
+    } else {
+      state.dom.runFill.style.width = '0%';
+    }
+  }
+  // Final 10s countdown
+  if (state.dom.countdown) {
+    if (state.wave?.active && secsLeft > 0 && secsLeft <= 10) {
+      state.dom.countdown.textContent = secsLeft;
+      state.dom.countdown.style.opacity = '1';
+    } else {
+      state.dom.countdown.style.opacity = '0';
+    }
+  }
+
   const nextUpgradeKills = state.nextUpgradeAt - state.kills;
   state.dom.uiDiv.innerHTML = `
     <div>Wave: ${state.currentWave + 1} / ${state.cfg.waves.length}</div>

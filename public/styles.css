@@ -10,6 +10,66 @@ html, body {
     font-family: 'Orbitron', monospace;
 }
 
+/* Run status bar */
+.run-bar {
+  width: clamp(220px, 50vw, 520px);
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--hud-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.run-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 14px rgba(0, 255, 255, 0.25);
+  transition: width 180ms ease;
+}
+
+/* Final 10s countdown */
+#countdown.countdown, .countdown {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: Orbitron, monospace;
+  font-size: clamp(40px, 10vw, 120px);
+  color: #ffcc55;
+  text-shadow: 0 0 18px rgba(255, 204, 85, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+  z-index: 2;
+}
+
+/* Owned items panel (shop + pause) */
+.owned-section {
+  margin-top: 8px;
+}
+.owned-title {
+  font-size: 12px;
+  letter-spacing: 1px;
+  opacity: 0.85;
+  text-transform: uppercase;
+}
+.owned-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.owned-item {
+  display: inline-block;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
 #game-wrapper {
     position: relative;
     width: 100vw;

@@ -51,6 +51,21 @@ export function handleCollisions() {
   const CELL = 64;
   const enemyHash = buildSpatialHash(state.activeEnemies, CELL);
 
+  // Dash damage aura (while invulnerable due to dash)
+  if (state.player?.dash?.damage > 0 && Date.now() <= (state.player.dash.activeUntil || 0)) {
+    const R = state.player.dash.damageRadius || (state.player.size + 10);
+    const nearby = querySpatialHash(enemyHash, state.player.x, state.player.y, R + 64);
+    nearby.forEach(e => {
+      if (Math.hypot(e.x - state.player.x, e.y - state.player.y) < e.size + R) {
+        if (e._dashHitAt !== state.player.dash.startedAt) {
+          e._dashHitAt = state.player.dash.startedAt;
+          e.hp -= state.player.dash.damage;
+          createParticles(e.x, e.y, '#66ffff', 6, 'hit');
+        }
+      }
+    });
+  }
+
   if (!state.player.invulnerable || Date.now() > state.player.invulnerable) {
     const playerCandidates = querySpatialHash(enemyHash, state.player.x, state.player.y, state.player.size + CELL);
     playerCandidates.forEach(e => {

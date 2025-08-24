@@ -21,6 +21,7 @@ export const state = {
   lastFrameTime: 0,
   scoreMultiplier: 1,
   upgradesTaken: 0,
+  ownedUpgrades: [],
   // wave spawner
   wave: {
     queue: [],
@@ -59,6 +60,8 @@ export const state = {
     healthFill: null,
     waveIndicator: null,
     bgGradient: null, // cached background gradient
+    runFill: null,
+    countdown: null,
   },
 };
 

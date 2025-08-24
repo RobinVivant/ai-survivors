@@ -35,6 +35,8 @@ function setupDOM() {
   state.dom.upgradeOverlay = document.getElementById('upgradeOverlay');
   state.dom.healthFill = document.getElementById('healthFill');
   state.dom.waveIndicator = document.getElementById('waveIndicator');
+  state.dom.runFill = document.getElementById('runFill');
+  state.dom.countdown = document.getElementById('countdown');
   resizeCanvas();
 }
 
@@ -89,14 +91,32 @@ function setupInput() {
       if (!inUpgradeMenu) {
         state.gamePaused = !state.gamePaused;
         if (state.gamePaused) {
-          state.dom.upgradeOverlay.innerHTML = `
-            <div class="overlay-card">
-              <h2 class="overlay-title">PAUSED</h2>
-              <div class="overlay-subtitle">Press P or ESC to resume</div>
-              <div class="overlay-hint">Controls: WASD or Arrow Keys to move, Space to dash</div>
-              <div class="overlay-tiny">Game auto-pauses during upgrades</div>
-            </div>
-          `;
+    const ownedWeaponsHtml = state.player.weapons.map(i => {
+      const w = state.cfg.weapons[i];
+      if (!w) return '';
+      const det = `DMG ${w.dmg || 1}, FR ${w.fireRate || 1}/s, SPD ${w.bulletSpeed || 5}` +
+                  `${w.piercing ? ', Pierce ' + w.piercing : ''}` +
+                  `${w.explosive ? ', Expl ' + w.explosive : ''}` +
+                  `${w.homing ? ', Hom ' + w.homing : ''}`;
+      return `<span class="owned-item" title="${det}">${w.name}${w.level ? ' L' + w.level : ''}</span>`;
+    }).join(' ');
+    const ownedUpgradesHtml = (state.ownedUpgrades || []).map(u =>
+      `<span class="owned-item" title="${u.description || ''}">${u.name}</span>`
+    ).join(' ');
+    state.dom.upgradeOverlay.innerHTML = `
+      <div class="overlay-card">
+        <h2 class="overlay-title">PAUSED</h2>
+        <div class="overlay-subtitle">Press P or ESC to resume</div>
+        <div class="overlay-hint">Controls: WASD or Arrow Keys to move, Space to dash</div>
+        <div class="owned-section">
+          <div class="owned-title">Owned Weapons</div>
+          <div class="owned-list">${ownedWeaponsHtml || '<i>None</i>'}</div>
+          <div class="owned-title" style="margin-top:8px;">Upgrades</div>
+          <div class="owned-list">${ownedUpgradesHtml || '<i>None</i>'}</div>
+        </div>
+        <div class="overlay-tiny">Game auto-pauses during upgrades</div>
+      </div>
+    `;
           state.dom.upgradeOverlay.style.display = 'flex';
         } else {
           state.dom.upgradeOverlay.style.display = 'none';
@@ -164,7 +184,7 @@ async function init() {
     velocity: {x: 0, y: 0},
     acceleration: 0.3,
     friction: 0.85,
-    dash: {ready: true, duration: 200, cooldown: 1000, lastUsed: 0},
+    dash: {ready: true, duration: 200, cooldown: 1000, lastUsed: 0, speed: 15, damage: 0, damageRadius: 24, startedAt: 0, activeUntil: 0},
     bulletRange: 700,         // px
     bulletRangeMult: 1,       // global multiplier from upgrades
     coinMagnetRadius: 120,    // px

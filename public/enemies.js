@@ -51,6 +51,8 @@ export function createEnemyInstance(name) {
     spawnTime: Date.now(),
     splitLevel: 0,
     splittable: def.splittable || def.specialAbility === 'split',
+    teleportCooldownMs: def.specialAbility === 'teleport' ? (def.teleportCooldownMs || 3000) : 0,
+    nextTeleportAt: def.specialAbility === 'teleport' ? (Date.now() + 2000 + Math.random() * 1000) : 0,
   };
 }
 
@@ -69,6 +71,27 @@ export function moveEnemies(deltaTime) {
         createParticles(e.x, e.y, '#00ff00', 3, 'poison');
       }
     }
+    const now = Date.now();
+    if (e.poisoned && now < e.poisoned) {
+      if (!e.lastPoisonTick || now - e.lastPoisonTick > 500) {
+        e.hp -= e.poisonDmg || 1;
+        e.lastPoisonTick = now;
+        createParticles(e.x, e.y, '#00ff00', 3, 'poison');
+      }
+    }
+    // Special ability: teleport (cooldown-gated)
+    if (e.specialAbility === 'teleport' && now >= (e.nextTeleportAt || 0)) {
+      if (Math.random() < 0.01) {
+        createParticles(e.x, e.y, e.color, 8, 'teleport');
+        e.x = state.player.x + (Math.random() - 0.5) * 200;
+        e.y = state.player.y + (Math.random() - 0.5) * 200;
+        e.x = Math.max(20, Math.min(window.innerWidth - 20, e.x));
+        e.y = Math.max(20, Math.min(window.innerHeight - 20, e.y));
+        createParticles(e.x, e.y, e.color, 8, 'teleport');
+        e.nextTeleportAt = now + (e.teleportCooldownMs || 3000);
+      }
+    }
+
     const dx = state.player.x - e.x;
     const dy = state.player.y - e.y;
     const dist = Math.hypot(dx, dy);
@@ -103,16 +126,14 @@ export function moveEnemies(deltaTime) {
         }
         break;
       case 'teleport':
-        if (!e.lastTeleport || Date.now() - e.lastTeleport > 3000) {
-          if (Math.random() < 0.01) {
-            createParticles(e.x, e.y, e.color, 8, 'teleport');
-            e.x = state.player.x + (Math.random() - 0.5) * 200;
-            e.y = state.player.y + (Math.random() - 0.5) * 200;
-            e.x = Math.max(20, Math.min(window.innerWidth - 20, e.x));
-            e.y = Math.max(20, Math.min(window.innerHeight - 20, e.y));
-            createParticles(e.x, e.y, e.color, 8, 'teleport');
-            e.lastTeleport = Date.now();
-          }
+        if (now >= (e.nextTeleportAt || 0) && Math.random() < 0.01) {
+          createParticles(e.x, e.y, e.color, 8, 'teleport');
+          e.x = state.player.x + (Math.random() - 0.5) * 200;
+          e.y = state.player.y + (Math.random() - 0.5) * 200;
+          e.x = Math.max(20, Math.min(window.innerWidth - 20, e.x));
+          e.y = Math.max(20, Math.min(window.innerHeight - 20, e.y));
+          createParticles(e.x, e.y, e.color, 8, 'teleport');
+          e.nextTeleportAt = now + (e.teleportCooldownMs || 3000);
         }
         if (dist > 1) {
           const moveSpeed = e.speed * timeMultiplier;

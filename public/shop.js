@@ -82,10 +82,33 @@ export function openShop(onClose) {
       <h2 class="overlay-title">SHOP</h2>
       <div class="overlay-subtitle">Wave ${state.currentWave + 1} cleared. Spend your coins.</div>
       <div id="shopCoins" class="overlay-subtitle">Coins: ${state.coins}</div>
+      <div id="ownedPanel" class="owned-section"></div>
     </div>
   `;
   const card = root.querySelector('.overlay-card');
   const coinsEl = root.querySelector('#shopCoins');
+  const ownedEl = root.querySelector('#ownedPanel');
+  const renderOwned = () => {
+    const weaponsHtml = state.player.weapons.map(i => {
+      const w = state.cfg.weapons[i];
+      if (!w) return '';
+      const det = `DMG ${w.dmg || 1}, FR ${w.fireRate || 1}/s, SPD ${w.bulletSpeed || 5}` +
+                  `${w.piercing ? ', Pierce ' + w.piercing : ''}` +
+                  `${w.explosive ? ', Expl ' + w.explosive : ''}` +
+                  `${w.homing ? ', Hom ' + w.homing : ''}`;
+      return `<span class="owned-item" title="${det}">${w.name}${w.level ? ' L' + w.level : ''}</span>`;
+    }).join(' ');
+    const upgradesHtml = (state.ownedUpgrades || []).map(u =>
+      `<span class="owned-item" title="${u.description || ''}">${u.name}</span>`
+    ).join(' ');
+    ownedEl.innerHTML = `
+      <div class="owned-title">Owned Weapons</div>
+      <div class="owned-list">${weaponsHtml || '<i>None</i>'}</div>
+      <div class="owned-title" style="margin-top:8px;">Upgrades</div>
+      <div class="owned-list">${upgradesHtml || '<i>None</i>'}</div>
+    `;
+  };
+  renderOwned();
 
   const updateCoins = () => {
     coinsEl.textContent = `Coins: ${state.coins}`;
@@ -124,6 +147,7 @@ export function openShop(onClose) {
       btn.style.opacity = '0.6';
       playSound('upgrade');
       createParticles(window.innerWidth / 2, window.innerHeight / 2, '#00ffff', 12, 'explosion');
+      renderOwned();
     };
     card.appendChild(btn);
   });

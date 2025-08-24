@@ -86,6 +86,30 @@ function presentUpgradeChoices() {
       rarity: "common"
     },
     {
+      name: "Blink Core",
+      effect: {type: "dash_cooldown", value: 0.2},
+      description: "Reduce dash cooldown by 20%.",
+      rarity: "rare"
+    },
+    {
+      name: "Phase Module",
+      effect: {type: "dash_duration", value: 100},
+      description: "Increase dash invulnerability by 100ms.",
+      rarity: "rare"
+    },
+    {
+      name: "Shock Dash",
+      effect: {type: "dash_damage", value: 6},
+      description: "Deal 6 damage to nearby enemies while dashing.",
+      rarity: "epic"
+    },
+    {
+      name: "Afterimage",
+      effect: {type: "dash_speed", value: 3},
+      description: "Dash travels faster and farther.",
+      rarity: "common"
+    },
+    {
       name: "Piercing Matrix",
       effect: {type: "piercing", value: 1},
       description: "Bullets pierce +1 enemy.",
@@ -295,6 +319,19 @@ export function applyUpgrade(upg) {
       state.player.maxHp += value;
       state.player.hp += value;
       break;
+    case 'dash_cooldown':
+      state.player.dash.cooldown = Math.max(150, Math.round(state.player.dash.cooldown * (1 - value)));
+      break;
+    case 'dash_duration':
+      state.player.dash.duration = Math.min(1000, state.player.dash.duration + value);
+      break;
+    case 'dash_speed':
+      state.player.dash.speed = (state.player.dash.speed || 15) + value;
+      break;
+    case 'dash_damage':
+      state.player.dash.damage = (state.player.dash.damage || 0) + value;
+      if (!state.player.dash.damageRadius) state.player.dash.damageRadius = 24;
+      break;
     case 'piercing':
       state.player.weapons.forEach(wi => {
         const w = state.cfg.weapons[wi];
@@ -315,6 +352,10 @@ export function applyUpgrade(upg) {
       break;
     default:
       break;
+  }
+  if (type !== 'weapon' && type !== 'upgrade_weapon') {
+    state.ownedUpgrades = state.ownedUpgrades || [];
+    state.ownedUpgrades.push(upg);
   }
   state.upgradesTaken = (state.upgradesTaken || 0) + 1;
 }

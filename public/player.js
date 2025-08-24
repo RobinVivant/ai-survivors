@@ -6,8 +6,7 @@ export function handlePlayerMovement(deltaTime) {
   if ((state.keys.Space || state.keys.space) && state.player.dash.ready) {
     state.player.dash.ready = false;
     state.player.dash.lastUsed = Date.now();
-    state.player.invulnerable = Date.now() + state.player.dash.duration;
-    const dashSpeed = 15;
+    const dashSpeed = state.player.dash.speed || 15;
     let dashAngle;
     const movementSpeed = Math.hypot(state.player.velocity.x, state.player.velocity.y);
     if (movementSpeed > 0.1) {
@@ -28,6 +27,10 @@ export function handlePlayerMovement(deltaTime) {
     }
     state.player.velocity.x = Math.cos(dashAngle) * dashSpeed;
     state.player.velocity.y = Math.sin(dashAngle) * dashSpeed;
+    const now = Date.now();
+    state.player.dash.startedAt = now;
+    state.player.dash.activeUntil = now + state.player.dash.duration;
+    state.player.invulnerable = state.player.dash.activeUntil;
     createParticles(state.player.x, state.player.y, '#ffffff', 15, 'dash');
     playSound('dash');
   }
