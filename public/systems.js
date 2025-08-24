@@ -1,3 +1,4 @@
+import {state} from './state.js';
 import {updateCameraShake, updateParticles} from './effects.js';
 import {moveEnemies} from './enemies.js';
 import {moveBullets} from './bullets.js';
