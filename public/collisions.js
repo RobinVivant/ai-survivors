@@ -4,6 +4,22 @@ import {playSound} from './audio.js';
 import {createEnemyInstance} from './enemies.js';
 import {buildSpatialHash, querySpatialHash} from './spatial.js';
 
+function computeCoinDrop(e) {
+  const hpComponent = (e.maxHp || e.hp || 10) / 20;
+  const speedComponent = (e.speed || 1) * 0.4;
+  const projectileBonus = e.projectile ? 2 : 0;
+  let abilityBonus = 0;
+  switch (e.specialAbility) {
+    case 'shield': abilityBonus = 2; break;
+    case 'rage': abilityBonus = 1.5; break;
+    case 'teleport': abilityBonus = 2; break;
+    case 'split': abilityBonus = 1.5; break;
+  }
+  const behaviorBonus = (e.behavior === 'kamikaze' || e.behavior === 'sniper') ? 1 : 0;
+  const base = hpComponent + speedComponent + projectileBonus + abilityBonus + behaviorBonus;
+  return Math.max(1, Math.round(base));
+}
+
 export function handleCollisions() {
   const CELL = 64;
   const enemyHash = buildSpatialHash(state.activeEnemies, CELL);
@@ -135,7 +151,9 @@ export function cleanupEntities() {
       const enemy = state.activeEnemies[i];
       const points = (enemy.points || 1) * state.scoreMultiplier;
       state.score += Math.floor(points);
-      state.coins += Math.ceil(points / 2);
+      const coinDrop = computeCoinDrop(enemy);
+      state.coins += coinDrop;
+      createParticles(enemy.x, enemy.y, '#ffdd55', 10, 'coin');
       state.kills++;
       createParticles(enemy.x, enemy.y, enemy.color, 12, 'explosion');
 

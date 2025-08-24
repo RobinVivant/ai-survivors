@@ -16,12 +16,11 @@ function pickRandom(arr, n) {
 
 function priceForUpgrade(upg) {
   const r = (upg.rarity || 'common').toLowerCase();
-  switch (r) {
-    case 'legendary': return 200;
-    case 'epic': return 120;
-    case 'rare': return 75;
-    default: return 45;
-  }
+  const base = r === 'legendary' ? 150 :
+               r === 'epic'      ? 90  :
+               r === 'rare'      ? 60  : 35;
+  const waveDisc = 1 - Math.min(0.3, (state.currentWave || 0) * 0.03);
+  return Math.max(5, Math.round(base * waveDisc));
 }
 
 export function openShop(onClose) {
@@ -56,6 +55,23 @@ export function openShop(onClose) {
       rarity: u.rarity || 'common'
     });
   });
+
+  // Normalize and discount prices
+  const waveDisc = 1 - Math.min(0.3, (state.currentWave || 0) * 0.03);
+  offers.forEach(o => {
+    if (o.kind === 'weapon') {
+      o.price = Math.max(10, Math.round(o.price * waveDisc));
+    }
+    if (typeof o.price !== 'number') {
+      o.price = 35; // safety fallback
+    }
+  });
+  // Guarantee at least one affordable item
+  if (state.coins > 0 && !offers.some(o => o.price <= state.coins) && offers.length) {
+    const cheapest = offers.reduce((a, b) => (a.price < b.price ? a : b));
+    cheapest.price = Math.max(5, state.coins);
+    if (!/\[SALE\]/.test(cheapest.name)) cheapest.name += ' [SALE]';
+  }
 
   // Overlay
   state.gamePaused = true;

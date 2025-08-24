@@ -42,7 +42,7 @@ export function createEnemyInstance(name) {
   return {
     ...def,
     x, y,
-    size: def.size || 8,
+    size: Math.round((def.size || 8) * 1.2),
     speed: (def.speed || 1) * speedScale,
     hp: Math.ceil((def.hp || 10) * hpScale),
     maxHp: Math.ceil((def.hp || 10) * hpScale),

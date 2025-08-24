@@ -156,7 +156,7 @@ async function init() {
     y: window.innerHeight / 2,
     baseSpeed: 3,
     speed: 3,
-    size: 10,
+    size: 14,
     hp: 50,
     maxHp: 50,
     weapons: state.cfg.weapons.length ? [0] : [],
