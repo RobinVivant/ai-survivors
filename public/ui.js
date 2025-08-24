@@ -59,6 +59,10 @@ export function updateUI() {
 }
 
 export function showVictory() {
+  if (state.dom.countdown) {
+    state.dom.countdown.style.opacity = '0';
+    state.dom.countdown.textContent = '';
+  }
   state.gamePaused = true;
   window.__updateLoopRunning && window.__updateLoopRunning();
   state.dom.upgradeOverlay.innerHTML = `
@@ -86,6 +90,10 @@ export function showVictory() {
 }
 
 export function showGameOver() {
+  if (state.dom.countdown) {
+    state.dom.countdown.style.opacity = '0';
+    state.dom.countdown.textContent = '';
+  }
   state.gamePaused = true;
   window.__updateLoopRunning && window.__updateLoopRunning();
   state.dom.upgradeOverlay.innerHTML = `

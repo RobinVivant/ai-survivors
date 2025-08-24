@@ -181,6 +181,11 @@ function presentUpgradeChoices() {
   `;
   state.dom.upgradeOverlay.style.display = 'flex';
   window.__updateLoopRunning && window.__updateLoopRunning();
+  // Ensure countdown is hidden while upgrade overlay is open
+  if (state.dom.countdown) {
+    state.dom.countdown.style.opacity = '0';
+    state.dom.countdown.textContent = '';
+  }
   const card = state.dom.upgradeOverlay.querySelector('.overlay-card');
 
   const resumeGame = () => {

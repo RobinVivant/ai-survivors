@@ -79,16 +79,15 @@ function setupInput() {
     state.keys[e.key] = true;
     state.keys[e.code] = true;
 
-    // Pause toggle (avoid if overlay is for upgrades/victory/game over)
+    // Pause toggle (avoid if overlay is currently showing upgrades/victory/game over)
     if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
-      const html = state.dom.upgradeOverlay.innerHTML || '';
-      const inUpgradeMenu =
-        html.includes('upgrade-btn') ||
-        html.includes('LEVEL UP') ||
-        html.includes('VICTORY') ||
-        html.includes('GAME OVER');
+      const overlay = state.dom.upgradeOverlay;
+      const overlayVisible = overlay && getComputedStyle(overlay).display !== 'none';
+      const txt = overlayVisible ? (overlay.textContent || '') : '';
+      const inBlockingOverlay =
+        overlayVisible && (txt.includes('LEVEL UP') || txt.includes('VICTORY') || txt.includes('GAME OVER'));
 
-      if (!inUpgradeMenu) {
+      if (!inBlockingOverlay) {
         state.gamePaused = !state.gamePaused;
         if (state.gamePaused) {
     const ownedWeaponsHtml = state.player.weapons.map(i => {
@@ -129,6 +128,11 @@ function setupInput() {
       </div>
     `;
           state.dom.upgradeOverlay.style.display = 'flex';
+          // Hide countdown while paused
+          if (state.dom.countdown) {
+            state.dom.countdown.style.opacity = '0';
+            state.dom.countdown.textContent = '';
+          }
         } else {
           state.dom.upgradeOverlay.style.display = 'none';
         }

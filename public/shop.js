@@ -85,6 +85,11 @@ export function openShop(onClose) {
       <div id="ownedPanel" class="owned-section"></div>
     </div>
   `;
+  // Ensure countdown is hidden while shop is open
+  if (state.dom.countdown) {
+    state.dom.countdown.style.opacity = '0';
+    state.dom.countdown.textContent = '';
+  }
   const card = root.querySelector('.overlay-card');
   const coinsEl = root.querySelector('#shopCoins');
   const ownedEl = root.querySelector('#ownedPanel');
