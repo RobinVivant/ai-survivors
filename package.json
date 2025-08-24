@@ -1,0 +1,13 @@
+{
+  "name": "ai-survivors",
+  "private": true,
+  "scripts": {
+    "dev": "bun run server",
+    "server": "bun run server/server.ts",
+    "build:web": "bash scripts/build.sh",
+    "build:desktop": "bash scripts/build-desktop.sh"
+  },
+  "devDependencies": {
+    "webview-bun": "^2.4.0"
+  }
+}
