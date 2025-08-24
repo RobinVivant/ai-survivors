@@ -97,7 +97,7 @@ export function handleShooting(ts) {
       y: state.player.y,
       dx: Math.cos(angle) * speed,
       dy: Math.sin(angle) * speed,
-      size: w.bulletSize || 3,
+      size: (w.bulletSize || 3) + (state.player._bulletSizeBonusFromCoins || 0),
       color: w.bulletColor || '#00ffff',
       dmg: w.dmg || 1,
       piercing: w.piercing || 0,

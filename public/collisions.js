@@ -182,8 +182,10 @@ export function handleCollisions() {
   for (let i = state.pickups.length - 1; i >= 0; i--) {
     const p = state.pickups[i];
     const dist = Math.hypot(p.x - state.player.x, p.y - state.player.y);
-    const collectR = state.player.coinCollectRadius || (state.player.size + p.size + 4);
-    if (dist < collectR) {
+    const touchR = (state.player.size || 0) + (p.size || 0);
+    const baseCollectR = state.player.coinCollectRadius || 0;
+    const collectR = Math.max(touchR, baseCollectR);
+    if (dist <= collectR) {
       state.coins += p.value || 1;
       createParticles(p.x, p.y, p.color || '#ffdd55', 8, 'coin');
       playSound('coin');
@@ -240,7 +242,8 @@ export function cleanupEntities() {
     const dx = state.player.x - p.x;
     const dy = state.player.y - p.y;
     const d = Math.hypot(dx, dy) || 1;
-    const magnetR = state.player.coinMagnetRadius || 100;
+    const sizeMagBonus = Math.max(0, (state.player.size - (state.player.baseSize || 22)) * 2);
+    const magnetR = (state.player.coinMagnetRadius || 100) + sizeMagBonus;
     if (d < magnetR) {
       const pull = (magnetR - d) / magnetR * 0.4;
       p.vx += (dx / d) * pull;
