@@ -51,20 +51,6 @@ function spawnPickups(amount, x, y) {
     });
   });
 }
-  const hpComponent = (e.maxHp || e.hp || 10) / 20;
-  const speedComponent = (e.speed || 1) * 0.4;
-  const projectileBonus = e.projectile ? 2 : 0;
-  let abilityBonus = 0;
-  switch (e.specialAbility) {
-    case 'shield': abilityBonus = 2; break;
-    case 'rage': abilityBonus = 1.5; break;
-    case 'teleport': abilityBonus = 2; break;
-    case 'split': abilityBonus = 1.5; break;
-  }
-  const behaviorBonus = (e.behavior === 'kamikaze' || e.behavior === 'sniper') ? 1 : 0;
-  const base = hpComponent + speedComponent + projectileBonus + abilityBonus + behaviorBonus;
-  return Math.max(1, Math.round(base));
-}
 
 export function handleCollisions() {
   const CELL = 64;
@@ -183,6 +169,16 @@ export function handleCollisions() {
       }, 100);
     }
   });
+  for (let i = state.pickups.length - 1; i >= 0; i--) {
+    const p = state.pickups[i];
+    const dist = Math.hypot(p.x - state.player.x, p.y - state.player.y);
+    if (dist < state.player.size + p.size + 4) {
+      state.coins += p.value || 1;
+      createParticles(p.x, p.y, p.color || '#ffdd55', 8, 'coin');
+      playSound('coin');
+      state.pickups.splice(i, 1);
+    }
+  }
 }
 
 export function cleanupEntities() {
@@ -225,4 +221,21 @@ export function cleanupEntities() {
       state.activeEnemies.splice(i, 1);
     }
   }
-}
+  for (let i = state.pickups.length - 1; i >= 0; i--) {
+    const p = state.pickups[i];
+    const dx = state.player.x - p.x;
+    const dy = state.player.y - p.y;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d < 100) {
+      const pull = (100 - d) / 100 * 0.4;
+      p.vx += (dx / d) * pull;
+      p.vy += (dy / d) * pull;
+    }
+    p.vx *= 0.96;
+    p.vy *= 0.96;
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.expireAt && Date.now() > p.expireAt) {
+      state.pickups.splice(i, 1);
+    }
+  }
