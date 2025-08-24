@@ -14,16 +14,16 @@ export const DEFAULT_CONFIG = {
     {name: "KernelTyrant", color: "#ff5599", speed: 1.1, hp: 180, size: 22, damage: 8, points: 80, behavior: "orbit", projectile: true, specialAbility: "shield"}
   ],
   weapons: [
-    {name: "Machine Gun", dmg: 5, fireRate: 7, bulletSpeed: 9, bulletSize: 2, bulletColor: "#00ffff", price: 0, description: "High RPM all-rounder", spread: 0.08},
+    {name: "Machine Gun", dmg: 5, fireRate: 7, bulletSpeed: 9, bulletSize: 2, bulletColor: "#00ffff", price: 0, description: "High RPM all-rounder", spread: 0.08, range: 1.3},
     {name: "Shotgun", dmg: 3, fireRate: 1.3, bulletSpeed: 7, bulletSize: 3, bulletColor: "#ffcc66", price: 120, description: "Close-range burst", splitShot: 6, spread: 0.25, range: 1},
-    {name: "Rocket Launcher", dmg: 12, fireRate: 1.1, bulletSpeed: 4.5, bulletSize: 5, bulletColor: "#ffaa33", price: 220, description: "Explosive payload", explosive: 50},
-    {name: "Railgun", dmg: 9, fireRate: 1.8, bulletSpeed: 13, bulletSize: 3, bulletColor: "#b3e5ff", price: 250, description: "Sharp piercing beam", piercing: 4},
-    {name: "ChainLightning", dmg: 5, fireRate: 1.6, bulletSpeed: 12, bulletSize: 2, bulletColor: "#7f7fff", price: 260, description: "Arcs between targets", chain: 4},
-    {name: "Cryo Ray", dmg: 4, fireRate: 2.0, bulletSpeed: 8, bulletSize: 3, bulletColor: "#66ccff", price: 180, description: "Freezes systems", freeze: 1600},
-    {name: "Plasma Repeater", dmg: 6, fireRate: 3.5, bulletSpeed: 8, bulletSize: 3, bulletColor: "#ff66aa", price: 200, description: "Fast, relentless fire", piercing: 1, spread: 0.06},
-    {name: "Homing Missiles", dmg: 6, fireRate: 1.9, bulletSpeed: 6, bulletSize: 3, bulletColor: "#00ff99", price: 280, description: "Seeks targets", homing: 0.12, explosive: 28},
-    {name: "Quantum Bouncer", dmg: 7, fireRate: 2.2, bulletSpeed: 8, bulletSize: 3, bulletColor: "#ff99cc", price: 240, description: "Ricocheting rounds", bounces: 3},
-    {name: "Laser Storm", dmg: 3, fireRate: 6.5, bulletSpeed: 10, bulletSize: 2, bulletColor: "#ffff66", price: 230, description: "Shredding light", splitShot: 2, spread: 0.12}
+    {name: "Rocket Launcher", dmg: 12, fireRate: 1.1, bulletSpeed: 4.5, bulletSize: 5, bulletColor: "#ffaa33", price: 220, description: "Explosive payload", explosive: 50, range: 1.4},
+    {name: "Railgun", dmg: 9, fireRate: 1.8, bulletSpeed: 13, bulletSize: 3, bulletColor: "#b3e5ff", price: 250, description: "Sharp piercing beam", piercing: 4, range: 1.8},
+    {name: "ChainLightning", dmg: 5, fireRate: 1.6, bulletSpeed: 12, bulletSize: 2, bulletColor: "#7f7fff", price: 260, description: "Arcs between targets", chain: 4, range: 1.0},
+    {name: "Cryo Ray", dmg: 4, fireRate: 2.0, bulletSpeed: 8, bulletSize: 3, bulletColor: "#66ccff", price: 180, description: "Freezes systems", freeze: 1600, range: 1.1},
+    {name: "Plasma Repeater", dmg: 6, fireRate: 3.5, bulletSpeed: 8, bulletSize: 3, bulletColor: "#ff66aa", price: 200, description: "Fast, relentless fire", piercing: 1, spread: 0.06, range: 1.2},
+    {name: "Homing Missiles", dmg: 6, fireRate: 1.9, bulletSpeed: 6, bulletSize: 3, bulletColor: "#00ff99", price: 280, description: "Seeks targets", homing: 0.12, explosive: 28, range: 1.4},
+    {name: "Quantum Bouncer", dmg: 7, fireRate: 2.2, bulletSpeed: 8, bulletSize: 3, bulletColor: "#ff99cc", price: 240, description: "Ricocheting rounds", bounces: 3, range: 1.1},
+    {name: "Laser Storm", dmg: 3, fireRate: 6.5, bulletSpeed: 10, bulletSize: 2, bulletColor: "#ffff66", price: 230, description: "Shredding light", splitShot: 2, spread: 0.12, range: 1.0}
   ],
   waves: [
     Array(16).fill("DataMite"),

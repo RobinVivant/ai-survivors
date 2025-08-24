@@ -94,7 +94,7 @@ export function openShop(onClose) {
       if (!w) return '';
       const det = `DMG ${w.dmg || 1}, FR ${w.fireRate || 1}/s, SPD ${w.bulletSpeed || 5}` +
                   `${w.bulletSize ? ', Size ' + w.bulletSize : ''}` +
-                  `${w.range ? ', RNG ' + Math.round(w.range * 400) + 'px' : ''}` +
+                  `${w.range ? ', RNG ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}` +
                   `${w.piercing ? ', Pierce ' + w.piercing : ''}` +
                   `${w.explosive ? ', Expl ' + w.explosive : ''}` +
                   `${w.homing ? ', Hom ' + w.homing : ''}` +
@@ -136,7 +136,7 @@ export function openShop(onClose) {
       detailText =
         `DMG ${w.dmg || 1} • FR ${w.fireRate || 1}/s • SPD ${w.bulletSpeed || 5}` +
         `${w.bulletSize ? ' • Size ' + w.bulletSize : ''}` +
-        `${w.range ? ' • RNG ' + Math.round(w.range * 400) + 'px' : ''}` +
+        `${w.range ? ' • RNG ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}` +
         `${w.piercing ? ' • Pierce ' + w.piercing : ''}` +
         `${w.explosive ? ' • Expl ' + w.explosive : ''}` +
         `${w.homing ? ' • Hom ' + w.homing : ''}` +

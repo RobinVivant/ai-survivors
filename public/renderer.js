@@ -118,26 +118,6 @@ export function draw() {
   state.dom.ctx.stroke();
   state.dom.ctx.restore();
 
-  // Ranges overlay (weapon range, coin magnet, coin collect)
-  state.dom.ctx.save();
-  state.dom.ctx.globalCompositeOperation = 'lighter';
-  state.dom.ctx.setLineDash([6, 4]);
-  const mult = state.player.bulletRangeMult || 1;
-  const unit = state.rangeUnitPx || 500;
-  const ranges = state.player.weapons.map(wi => {
-    const w = state.cfg.weapons[wi];
-    if (!w) return 0;
-    const base = w.range ? w.range * unit : (state.player.bulletRange || unit * 2);
-    return base * mult;
-  });
-  const fallbackRange = (state.player.bulletRange || unit * 2) * mult;
-  const weaponRange = ranges.length ? Math.max(...ranges) : fallbackRange;
-  state.dom.ctx.strokeStyle = 'rgba(0,255,255,0.20)';
-  state.dom.ctx.beginPath();
-  state.dom.ctx.arc(state.player.x, state.player.y, weaponRange, 0, Math.PI * 2);
-  state.dom.ctx.stroke();
-  state.dom.ctx.setLineDash([]);
-  state.dom.ctx.restore();
 
   state.activeEnemies.forEach(e => {
     state.dom.ctx.save();

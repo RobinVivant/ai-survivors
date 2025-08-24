@@ -96,7 +96,7 @@ function setupInput() {
       if (!w) return '';
       const det = `DMG ${w.dmg || 1}, FR ${w.fireRate || 1}/s, SPD ${w.bulletSpeed || 5}` +
                   `${w.bulletSize ? ', Size ' + w.bulletSize : ''}` +
-                  `${w.range ? ', RNG ' + Math.round(w.range * 400) + 'px' : ''}` +
+                  `${w.range ? ', RNG ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}` +
                   `${w.piercing ? ', Pierce ' + w.piercing : ''}` +
                   `${w.explosive ? ', Expl ' + w.explosive : ''}` +
                   `${w.homing ? ', Hom ' + w.homing : ''}` +
@@ -197,7 +197,7 @@ async function init() {
     acceleration: 0.3,
     friction: 0.85,
     dash: {ready: true, duration: 240, cooldown: 800, lastUsed: 0, speed: 18, damage: 4, damageRadius: 26, baseDamageRadius: 26, startedAt: 0, activeUntil: 0},
-    bulletRange: 1100,         // px
+    bulletRange: 450,
     bulletRangeMult: 1,       // global multiplier from upgrades
     coinMagnetRadius: 140,    // px
     coinCollectRadius: 28,    // px
