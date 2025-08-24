@@ -1,33 +1,86 @@
 export class Vec2 {
-  constructor(x = 0, y = 0) { this.x = x; this.y = y; }
-  clone() { return new Vec2(this.x, this.y); }
-  set(x, y) { this.x = x; this.y = y; return this; }
-  copy(v) { this.x = v.x; this.y = v.y; return this; }
-  add(v) { this.x += v.x; this.y += v.y; return this; }
-  sub(v) { this.x -= v.x; this.y -= v.y; return this; }
-  scale(s) { this.x *= s; this.y *= s; return this; }
-  dot(v) { return this.x * v.x + this.y * v.y; }
-  len() { return Math.hypot(this.x, this.y); }
-  len2() { return this.x * this.x + this.y * this.y; }
+  constructor(x = 0, y = 0) {
+    this.x = x;
+    this.y = y;
+  }
+
+  static add(a, b) {
+    return new Vec2(a.x + b.x, a.y + b.y);
+  }
+
+  static sub(a, b) {
+    return new Vec2(a.x - b.x, a.y - b.y);
+  }
+
+  static scale(a, s) {
+    return new Vec2(a.x * s, a.y * s);
+  }
+
+  static dot(a, b) {
+    return a.x * b.x + a.y * b.y;
+  }
+
+  clone() {
+    return new Vec2(this.x, this.y);
+  }
+
+  set(x, y) {
+    this.x = x;
+    this.y = y;
+    return this;
+  }
+
+  copy(v) {
+    this.x = v.x;
+    this.y = v.y;
+    return this;
+  }
+
+  add(v) {
+    this.x += v.x;
+    this.y += v.y;
+    return this;
+  }
+
+  sub(v) {
+    this.x -= v.x;
+    this.y -= v.y;
+    return this;
+  }
+
+  scale(s) {
+    this.x *= s;
+    this.y *= s;
+    return this;
+  }
+
+  dot(v) {
+    return this.x * v.x + this.y * v.y;
+  }
+
+  len() {
+    return Math.hypot(this.x, this.y);
+  }
+
+  len2() {
+    return this.x * this.x + this.y * this.y;
+  }
+
   normalize(eps = 1e-8) {
     const l = this.len();
     if (l < eps) return this.set(0, 0);
     return this.scale(1 / l);
   }
-  static add(a, b) { return new Vec2(a.x + b.x, a.y + b.y); }
-  static sub(a, b) { return new Vec2(a.x - b.x, a.y - b.y); }
-  static scale(a, s) { return new Vec2(a.x * s, a.y * s); }
-  static dot(a, b) { return a.x * b.x + a.y * b.y; }
 }
 
 export class Particle {
   constructor({
-    position = new Vec2(),
-    velocity = new Vec2(),
-    mass = 1.0,
-    radius = 0.0,
-    pinned = false,
-  } = {}) {
+                position = new Vec2(),
+                velocity = new Vec2(),
+                mass = 1.0,
+                radius = 0.0,
+                pinned = false,
+              } = {}) {
     this.x = position.clone();
     this.v = velocity.clone();
     this.m = mass;
@@ -44,15 +97,26 @@ export class SpatialHash {
     this.cellSize = cellSize;
     this.cells = new Map();
   }
-  _key(ix, iy) { return `${ix},${iy}`; }
-  _cellIndex(x, y) { return [Math.floor(x / this.cellSize), Math.floor(y / this.cellSize)]; }
-  clear() { this.cells.clear(); }
+
+  _key(ix, iy) {
+    return `${ix},${iy}`;
+  }
+
+  _cellIndex(x, y) {
+    return [Math.floor(x / this.cellSize), Math.floor(y / this.cellSize)];
+  }
+
+  clear() {
+    this.cells.clear();
+  }
+
   insert(particle, index) {
     const [ix, iy] = this._cellIndex(particle.xp.x, particle.xp.y);
     const key = this._key(ix, iy);
     if (!this.cells.has(key)) this.cells.set(key, []);
     this.cells.get(key).push(index);
   }
+
   queryNeighbors(particle) {
     const [ix, iy] = this._cellIndex(particle.xp.x, particle.xp.y);
     const results = [];
@@ -66,17 +130,22 @@ export class SpatialHash {
   }
 }
 
-export class Constraint { projectLocal(world, dt) {} }
+export class Constraint {
+  projectLocal(world, dt) {
+  }
+}
 
 export class DistanceConstraint extends Constraint {
   constructor(i, j, restLength, stiffness = 1.0, compliance = 0.0) {
     super();
-    this.i = i; this.j = j;
+    this.i = i;
+    this.j = j;
     this.L0 = restLength;
     this.stiffness = stiffness;
     this.compliance = compliance;
     this.lambda = 0.0;
   }
+
   projectLocal(world, dt) {
     const pi = world.particles[this.i];
     const pj = world.particles[this.j];
@@ -104,6 +173,7 @@ export class PinConstraint extends Constraint {
     this.lambdaX = 0.0;
     this.lambdaY = 0.0;
   }
+
   projectLocal(world, dt) {
     const p = world.particles[this.i];
     const w = p.w;
@@ -133,16 +203,23 @@ export class HalfSpaceConstraint extends Constraint {
     this.compliance = compliance;
     this.lambda = 0.0;
   }
+
   projectLocal(world, dt) {
     const p = world.particles[this.i];
     const w = p.w;
     if (w === 0) return;
     const alpha = this.compliance / (dt * dt);
     const g = this.n.x * p.xp.x + this.n.y * p.xp.y - this.offset;
-    if (g >= 0) { this.lambda = 0.0; return; }
+    if (g >= 0) {
+      this.lambda = 0.0;
+      return;
+    }
     let dl = -(g + alpha * this.lambda) / (w + alpha);
     let newLambda = this.lambda + dl;
-    if (newLambda < 0) { dl = -this.lambda; newLambda = 0; }
+    if (newLambda < 0) {
+      dl = -this.lambda;
+      newLambda = 0;
+    }
     if (w > 0) {
       p.xp.x += this.n.x * dl * w;
       p.xp.y += this.n.y * dl * w;
@@ -154,10 +231,12 @@ export class HalfSpaceConstraint extends Constraint {
 export class CircleContactConstraint extends Constraint {
   constructor(i, j, compliance = 0.0) {
     super();
-    this.i = i; this.j = j;
+    this.i = i;
+    this.j = j;
     this.compliance = compliance;
     this.lambda = 0.0;
   }
+
   projectLocal(world, dt) {
     const pi = world.particles[this.i];
     const pj = world.particles[this.j];
@@ -169,11 +248,17 @@ export class CircleContactConstraint extends Constraint {
     const n = Vec2.scale(d, 1.0 / dist);
     const minDist = (pi.r || 0) + (pj.r || 0);
     const g = dist - minDist;
-    if (g >= 0) { this.lambda = 0.0; return; }
+    if (g >= 0) {
+      this.lambda = 0.0;
+      return;
+    }
     const wSum = wi + wj;
     let dl = -(g + alpha * this.lambda) / (wSum + alpha);
     let newLambda = this.lambda + dl;
-    if (newLambda < 0) { dl = -this.lambda; newLambda = 0; }
+    if (newLambda < 0) {
+      dl = -this.lambda;
+      newLambda = 0;
+    }
     if (wi > 0) pi.xp.add(Vec2.scale(n, +dl * wi));
     if (wj > 0) pj.xp.add(Vec2.scale(n, -dl * wj));
     this.lambda = newLambda;
@@ -182,12 +267,12 @@ export class CircleContactConstraint extends Constraint {
 
 export class AVBDSolver {
   constructor({
-    iterations = 5,
-    substeps = 1,
-    gravity = new Vec2(0, 0),
-    collisionCompliance = 0.0,
-    cellSize = 64,
-  } = {}) {
+                iterations = 5,
+                substeps = 1,
+                gravity = new Vec2(0, 0),
+                collisionCompliance = 0.0,
+                cellSize = 64,
+              } = {}) {
     this.iterations = iterations;
     this.substeps = substeps;
     this.gravity = gravity.clone();
@@ -199,14 +284,28 @@ export class AVBDSolver {
     this.maxSubstepsPerFrame = 8;
     this.hardDt = 1 / 60;
   }
-  addParticle(opts) { const p = new Particle(opts); this.particles.push(p); return this.particles.length - 1; }
-  addConstraint(c) { this.constraints.push(c); return this.constraints.length - 1; }
+
+  addParticle(opts) {
+    const p = new Particle(opts);
+    this.particles.push(p);
+    return this.particles.length - 1;
+  }
+
+  addConstraint(c) {
+    this.constraints.push(c);
+    return this.constraints.length - 1;
+  }
+
   linkDistanceChain(indices, restLength, stiffness = 1.0, compliance = 0.0) {
     for (let k = 0; k + 1 < indices.length; k++) {
       this.addConstraint(new DistanceConstraint(indices[k], indices[k + 1], restLength, stiffness, compliance));
     }
   }
-  clearForces() { for (const p of this.particles) p.f.set(0, 0); }
+
+  clearForces() {
+    for (const p of this.particles) p.f.set(0, 0);
+  }
+
   applyForces(dt) {
     for (const p of this.particles) {
       if (p.w === 0) continue;
@@ -214,18 +313,21 @@ export class AVBDSolver {
       p.v.y += dt * (p.f.y * p.w + this.gravity.y);
     }
   }
+
   predictPositions(dt) {
     for (const p of this.particles) {
       p.xp.x = p.x.x + dt * p.v.x;
       p.xp.y = p.x.y + dt * p.v.y;
     }
   }
+
   buildBroadPhase() {
     this.grid.clear();
     for (let i = 0; i < this.particles.length; i++) {
       this.grid.insert(this.particles[i], i);
     }
   }
+
   generateContacts() {
     const contacts = [];
     for (let i = 0; i < this.particles.length; i++) {
@@ -245,12 +347,14 @@ export class AVBDSolver {
     }
     return contacts;
   }
+
   projectConstraints(dt) {
     const dynamicContacts = this.constraints.concat(this.generateContacts());
     for (let it = 0; it < this.iterations; it++) {
       for (let k = 0; k < dynamicContacts.length; k++) dynamicContacts[k].projectLocal(this, dt);
     }
   }
+
   updateVelocities(dt) {
     for (const p of this.particles) {
       const vx = (p.xp.x - p.x.x) / dt;
@@ -259,6 +363,7 @@ export class AVBDSolver {
       p.x.copy(p.xp);
     }
   }
+
   step(dt) {
     this.applyForces(dt);
     this.predictPositions(dt);
@@ -267,6 +372,7 @@ export class AVBDSolver {
     this.updateVelocities(dt);
     this.clearForces();
   }
+
   advance(frameDelta) {
     this.timeAccumulator += frameDelta;
     const dt = this.hardDt;
@@ -281,17 +387,39 @@ export class AVBDSolver {
 }
 
 export class AVBDWorld {
-  constructor(config = {}) { this.solver = new AVBDSolver(config); }
-  addParticle(opts) { return this.solver.addParticle(opts); }
-  addConstraint(c) { return this.solver.addConstraint(c); }
+  constructor(config = {}) {
+    this.solver = new AVBDSolver(config);
+  }
+
+  get particles() {
+    return this.solver.particles;
+  }
+
+  get constraints() {
+    return this.solver.constraints;
+  }
+
+  addParticle(opts) {
+    return this.solver.addParticle(opts);
+  }
+
+  addConstraint(c) {
+    return this.solver.addConstraint(c);
+  }
+
   addDistance(i, j, rest, stiffness = 1.0, compliance = 0.0) {
     return this.addConstraint(new DistanceConstraint(i, j, rest, stiffness, compliance));
   }
-  addPin(i, target, compliance = 0.0) { return this.addConstraint(new PinConstraint(i, target, compliance)); }
+
+  addPin(i, target, compliance = 0.0) {
+    return this.addConstraint(new PinConstraint(i, target, compliance));
+  }
+
   addGround(i, normal = new Vec2(0, -1), height = 0, compliance = 0.0) {
     return this.addConstraint(new HalfSpaceConstraint(i, normal, height, compliance));
   }
-  update(dt) { this.solver.advance(dt); }
-  get particles() { return this.solver.particles; }
-  get constraints() { return this.solver.constraints; }
+
+  update(dt) {
+    this.solver.advance(dt);
+  }
 }

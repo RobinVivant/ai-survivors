@@ -88,7 +88,8 @@ export function playSound(type, frequency = 440, duration = 0.1, volume = 0.1) {
       try {
         oscillator.disconnect();
         gainNode.disconnect();
-      } catch {}
+      } catch {
+      }
     };
   } catch (e) {
     console.log('Sound playback failed:', e);

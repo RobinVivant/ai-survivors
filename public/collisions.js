@@ -32,9 +32,9 @@ function spawnHealthPack(x, y, amount = 5) {
 
 function spawnPickups(amount, x, y) {
   const denoms = [
-    {type: 'lingo',   value: 15, color: '#cc33ff', size: 9}, // highest value, most purple, largest
-    {type: 'diamond', value: 7,  color: '#66e0ff', size: 7},
-    {type: 'coin',    value: 1,  color: '#ffdd55', size: 5},
+    {type: 'lingo', value: 15, color: '#cc33ff', size: 9}, // highest value, most purple, largest
+    {type: 'diamond', value: 7, color: '#66e0ff', size: 7},
+    {type: 'coin', value: 1, color: '#ffdd55', size: 5},
   ];
   let remaining = Math.floor(amount);
   if (remaining <= 0) return;
@@ -67,36 +67,40 @@ export function handleCollisions() {
   const CELL = 64;
   const enemyHash = buildSpatialHash(state.activeEnemies, CELL);
 
-  // Resolve enemy-enemy overlaps with size-based inertia
-  state.activeEnemies.forEach(e => {
-    const neighbors = querySpatialHash(enemyHash, e.x, e.y, e.size + 64);
-    neighbors.forEach(o => {
-      if (o === e) return;
-      const dx = o.x - e.x;
-      const dy = o.y - e.y;
-      const dist = Math.hypot(dx, dy) || 0.0001;
-      const minDist = (e.size || 0) + (o.size || 0);
-      if (dist < minDist) {
-        const nx = dx / dist;
-        const ny = dy / dist;
-        const overlap = minDist - dist;
+  const usingAVBD = !!(state.physics && state.physics.enabled);
 
-        const m1 = Math.max(1, (e.size || 1) * (e.size || 1));
-        const m2 = Math.max(1, (o.size || 1) * (o.size || 1));
-        const inv1 = 1 / m1;
-        const inv2 = 1 / m2;
-        const invSum = inv1 + inv2;
+  // Resolve enemy-enemy overlaps (disabled when AVBD is active)
+  if (!usingAVBD) {
+    state.activeEnemies.forEach(e => {
+      const neighbors = querySpatialHash(enemyHash, e.x, e.y, e.size + 64);
+      neighbors.forEach(o => {
+        if (o === e) return;
+        const dx = o.x - e.x;
+        const dy = o.y - e.y;
+        const dist = Math.hypot(dx, dy) || 0.0001;
+        const minDist = (e.size || 0) + (o.size || 0);
+        if (dist < minDist) {
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const overlap = minDist - dist;
 
-        const move1 = overlap * (inv1 / invSum);
-        const move2 = overlap * (inv2 / invSum);
+          const m1 = Math.max(1, (e.size || 1) * (e.size || 1));
+          const m2 = Math.max(1, (o.size || 1) * (o.size || 1));
+          const inv1 = 1 / m1;
+          const inv2 = 1 / m2;
+          const invSum = inv1 + inv2;
 
-        e.x -= nx * move1;
-        e.y -= ny * move1;
-        o.x += nx * move2;
-        o.y += ny * move2;
-      }
+          const move1 = overlap * (inv1 / invSum);
+          const move2 = overlap * (inv2 / invSum);
+
+          e.x -= nx * move1;
+          e.y -= ny * move1;
+          o.x += nx * move2;
+          o.y += ny * move2;
+        }
+      });
     });
-  });
+  }
 
   // Player-enemy separation + contact damage
   const p = state.player;
@@ -107,24 +111,27 @@ export function handleCollisions() {
     const dy = e.y - p.y;
     const dist = Math.hypot(dx, dy) || 0.0001;
     const minDist = (e.size || 0) + (p.size || 0);
-    if (dist < minDist) {
-      const nx = dx / dist;
-      const ny = dy / dist;
-      const overlap = minDist - dist;
+    const eps = usingAVBD ? 0.5 : 0; // allow touch damage with AVBD
+    if (dist < minDist + eps) {
+      if (!usingAVBD) {
+        const nx = dx / dist;
+        const ny = dy / dist;
+        const overlap = minDist - dist;
 
-      // Separate with inertia (player heavier to avoid huge displacement)
-      const mEnemy = Math.max(1, (e.size || 1) * (e.size || 1));
-      const mPlayer = Math.max(1, (p.size || 1) * (p.size || 1) * 2); // player ~2x area-mass
-      const invE = 1 / mEnemy;
-      const invP = 1 / mPlayer;
-      const invSum = invE + invP;
-      const moveE = overlap * (invE / invSum);
-      const moveP = overlap * (invP / invSum);
+        // Separate with inertia (player heavier to avoid huge displacement)
+        const mEnemy = Math.max(1, (e.size || 1) * (e.size || 1));
+        const mPlayer = Math.max(1, (p.size || 1) * (p.size || 1) * 2); // player ~2x area-mass
+        const invE = 1 / mEnemy;
+        const invP = 1 / mPlayer;
+        const invSum = invE + invP;
+        const moveE = overlap * (invE / invSum);
+        const moveP = overlap * (invP / invSum);
 
-      e.x += nx * moveE;
-      e.y += ny * moveE;
-      p.x -= nx * moveP;
-      p.y -= ny * moveP;
+        e.x += nx * moveE;
+        e.y += ny * moveE;
+        p.x -= nx * moveP;
+        p.y -= ny * moveP;
+      }
 
       // Contact damage to player, rate-limited and scaled by enemy size/inertia
       const tick = 350; // ms between contact hits per enemy

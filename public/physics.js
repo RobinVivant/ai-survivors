@@ -1,7 +1,7 @@
 import {state} from './state.js';
 import {AVBDWorld, Vec2} from './avbd2d.js';
 
-const PHYS_CFG = { iterations: 8, substeps: 1, gravity: new Vec2(0, 0), collisionCompliance: 0.0, cellSize: 64 };
+const PHYS_CFG = {iterations: 8, substeps: 1, gravity: new Vec2(0, 0), collisionCompliance: 0.0, cellSize: 64};
 const massFromSize = s => Math.max(1, (s || 8) * (s || 8) * 0.2); // pseudo area
 
 export function initPhysics() {
@@ -73,7 +73,9 @@ export function updatePhysics(deltaMs) {
     p.v.set((state.player.velocity?.x || 0) * 60, (state.player.velocity?.y || 0) * 60);
     p.r = state.player.size || p.r;
     const m = massFromSize(state.player.size || 22);
-    p.m = m; p.invM = 1 / m; p.w = p.invM;
+    p.m = m;
+    p.invM = 1 / m;
+    p.w = p.invM;
   }
   for (let i = 0; i < state.physics.idxEnemies.length; i++) {
     const idx = state.physics.idxEnemies[i];
@@ -84,7 +86,9 @@ export function updatePhysics(deltaMs) {
     pi.v.set((e.vx || 0) * 60, (e.vy || 0) * 60);
     pi.r = e.size || pi.r;
     const m = massFromSize(e.size || 10);
-    pi.m = m; pi.invM = 1 / m; pi.w = pi.invM;
+    pi.m = m;
+    pi.invM = 1 / m;
+    pi.w = pi.invM;
   }
 
   // Step physics (seconds)

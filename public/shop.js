@@ -17,8 +17,8 @@ function pickRandom(arr, n) {
 function priceForUpgrade(upg) {
   const r = (upg.rarity || 'common').toLowerCase();
   const base = r === 'legendary' ? 110 :
-               r === 'epic'      ? 70  :
-               r === 'rare'      ? 45  : 25;
+    r === 'epic' ? 70 :
+      r === 'rare' ? 45 : 25;
   const waveDisc = 1 - Math.min(0.35, (state.currentWave || 0) * 0.035);
   return Math.max(5, Math.round(base * waveDisc));
 }
@@ -98,18 +98,18 @@ export function openShop(onClose) {
       const w = state.cfg.weapons[i];
       if (!w) return '';
       const det = `DMG ${w.dmg || 1}, FR ${w.fireRate || 1}/s, SPD ${w.bulletSpeed || 5}` +
-                  `${w.bulletSize ? ', Size ' + w.bulletSize : ''}` +
-                  `${w.range ? ', RNG ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}` +
-                  `${w.piercing ? ', Pierce ' + w.piercing : ''}` +
-                  `${w.explosive ? ', Expl ' + w.explosive : ''}` +
-                  `${w.homing ? ', Hom ' + w.homing : ''}` +
-                  `${w.chain ? ', Chain ' + w.chain : ''}` +
-                  `${w.splitShot ? ', Split +' + w.splitShot : ''}` +
-                  `${w.poison ? ', Poison ' + w.poison + 'ms' : ''}` +
-                  `${w.freeze ? ', Freeze ' + w.freeze + 'ms' : ''}` +
-                  `${w.bounces ? ', Bounce ' + w.bounces : ''}` +
-                  `${w.contactDamage ? ', C-DMG ' + w.contactDamage : ''}` +
-                  `${w.contactDamage && w.range ? ', C-R ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}`;
+        `${w.bulletSize ? ', Size ' + w.bulletSize : ''}` +
+        `${w.range ? ', RNG ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}` +
+        `${w.piercing ? ', Pierce ' + w.piercing : ''}` +
+        `${w.explosive ? ', Expl ' + w.explosive : ''}` +
+        `${w.homing ? ', Hom ' + w.homing : ''}` +
+        `${w.chain ? ', Chain ' + w.chain : ''}` +
+        `${w.splitShot ? ', Split +' + w.splitShot : ''}` +
+        `${w.poison ? ', Poison ' + w.poison + 'ms' : ''}` +
+        `${w.freeze ? ', Freeze ' + w.freeze + 'ms' : ''}` +
+        `${w.bounces ? ', Bounce ' + w.bounces : ''}` +
+        `${w.contactDamage ? ', C-DMG ' + w.contactDamage : ''}` +
+        `${w.contactDamage && w.range ? ', C-R ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}`;
       return `<span class="owned-item" title="${det}">${w.name}${w.level ? ' L' + w.level : ''} — ${det}</span>`;
     }).join(' ');
 
@@ -136,32 +136,32 @@ export function openShop(onClose) {
     const btn = document.createElement('button');
     btn.className = 'upgrade-btn';
     btn.dataset.rarity = o.rarity || 'common';
-  let detailText = '';
-  if (o.kind === 'weapon') {
-    const w = state.cfg.weapons[o.weaponIndex];
-    if (w) {
-      detailText =
-        `DMG ${w.dmg || 1} • FR ${w.fireRate || 1}/s • SPD ${w.bulletSpeed || 5}` +
-        `${w.bulletSize ? ' • Size ' + w.bulletSize : ''}` +
-        `${w.range ? ' • RNG ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}` +
-        `${w.piercing ? ' • Pierce ' + w.piercing : ''}` +
-        `${w.explosive ? ' • Expl ' + w.explosive : ''}` +
-        `${w.homing ? ' • Hom ' + w.homing : ''}` +
-        `${w.chain ? ' • Chain ' + w.chain : ''}` +
-        `${w.splitShot ? ' • Split +' + w.splitShot : ''}` +
-        `${w.poison ? ' • Poison ' + w.poison + 'ms' : ''}` +
-        `${w.freeze ? ' • Freeze ' + w.freeze + 'ms' : ''}` +
-        `${w.bounces ? ' • Bounce ' + w.bounces : ''}` +
-        `${w.contactDamage ? ' • C-DMG ' + w.contactDamage : ''}` +
-        `${w.contactDamage && w.range ? ' • C-R ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}`;
+    let detailText = '';
+    if (o.kind === 'weapon') {
+      const w = state.cfg.weapons[o.weaponIndex];
+      if (w) {
+        detailText =
+          `DMG ${w.dmg || 1} • FR ${w.fireRate || 1}/s • SPD ${w.bulletSpeed || 5}` +
+          `${w.bulletSize ? ' • Size ' + w.bulletSize : ''}` +
+          `${w.range ? ' • RNG ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}` +
+          `${w.piercing ? ' • Pierce ' + w.piercing : ''}` +
+          `${w.explosive ? ' • Expl ' + w.explosive : ''}` +
+          `${w.homing ? ' • Hom ' + w.homing : ''}` +
+          `${w.chain ? ' • Chain ' + w.chain : ''}` +
+          `${w.splitShot ? ' • Split +' + w.splitShot : ''}` +
+          `${w.poison ? ' • Poison ' + w.poison + 'ms' : ''}` +
+          `${w.freeze ? ' • Freeze ' + w.freeze + 'ms' : ''}` +
+          `${w.bounces ? ' • Bounce ' + w.bounces : ''}` +
+          `${w.contactDamage ? ' • C-DMG ' + w.contactDamage : ''}` +
+          `${w.contactDamage && w.range ? ' • C-R ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}`;
+      }
+    } else if (o.kind === 'upgrade') {
+      const eff = o.upgrade?.effect || {};
+      const valStr = typeof eff.value === 'number' ? (eff.value > 0 ? '+' + eff.value : '' + eff.value) : (eff.value || '');
+      detailText = eff.type ? `${eff.type.toUpperCase()} ${valStr}` : '';
     }
-  } else if (o.kind === 'upgrade') {
-    const eff = o.upgrade?.effect || {};
-    const valStr = typeof eff.value === 'number' ? (eff.value > 0 ? '+' + eff.value : '' + eff.value) : (eff.value || '');
-    detailText = eff.type ? `${eff.type.toUpperCase()} ${valStr}` : '';
-  }
 
-  btn.innerHTML = `
+    btn.innerHTML = `
     <div class="upgrade-head">
       <div class="upgrade-name">[${idx + 1}] ${o.name}</div>
       <div class="upgrade-rarity">${(o.rarity || 'common').toUpperCase()} • ${o.price}c</div>
