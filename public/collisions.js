@@ -14,6 +14,22 @@ function computeCoinDrop(e) {
   return Math.max(0, Math.round(base + variance));
 }
 
+function spawnHealthPack(x, y, amount = 5) {
+  const ang = Math.random() * Math.PI * 2;
+  const spd = Math.random() * 2 + 1;
+  state.pickups.push({
+    x, y,
+    vx: Math.cos(ang) * spd,
+    vy: Math.sin(ang) * spd,
+    size: 7,
+    type: 'heal',
+    color: '#66ff88',
+    value: amount,
+    spawnAt: Date.now(),
+    expireAt: Date.now() + 15000
+  });
+}
+
 function spawnPickups(amount, x, y) {
   const denoms = [
     {type: 'lingo',   value: 15, color: '#cc33ff', size: 9}, // highest value, most purple, largest
@@ -73,6 +89,7 @@ export function handleCollisions() {
         const damage = e.damage || 1;
         state.player.hp -= damage;
         state.player.invulnerable = Date.now() + 500;
+        state.player.lastDamagedAt = performance.now();
         createParticles(state.player.x, state.player.y, '#ff4444', 8, 'damage');
         addCameraShake(3, 8);
         playSound('damage');
@@ -82,6 +99,7 @@ export function handleCollisions() {
       if (b.enemy && Math.hypot(state.player.x - b.x, state.player.y - b.y) < state.player.size + b.size) {
         state.player.hp -= b.dmg;
         state.player.invulnerable = Date.now() + 500;
+        state.player.lastDamagedAt = performance.now();
         b._hit = true;
         createParticles(state.player.x, state.player.y, '#ff4444', 8, 'damage');
         addCameraShake(3, 8);
@@ -186,9 +204,16 @@ export function handleCollisions() {
     const baseCollectR = state.player.coinCollectRadius || 0;
     const collectR = Math.max(touchR, baseCollectR);
     if (dist <= collectR) {
-      state.coins += p.value || 1;
-      createParticles(p.x, p.y, p.color || '#ffdd55', 8, 'coin');
-      playSound('coin');
+      if (p.type === 'heal') {
+        if (state.player.hp >= state.player.maxHp) continue; // leave for later
+        state.player.hp = Math.min(state.player.maxHp, state.player.hp + (p.value || 5));
+        createParticles(p.x, p.y, p.color || '#66ff66', 8, 'health');
+        playSound('heal');
+      } else {
+        state.coins += p.value || 1;
+        createParticles(p.x, p.y, p.color || '#ffdd55', 8, 'coin');
+        playSound('coin');
+      }
       state.pickups.splice(i, 1);
     }
   }
@@ -216,8 +241,7 @@ export function cleanupEntities() {
       createParticles(enemy.x, enemy.y, enemy.color, 12, 'explosion');
 
       if (Math.random() < 0.05) {
-        createParticles(enemy.x, enemy.y, '#00ff00', 6, 'health');
-        state.player.hp = Math.min(state.player.maxHp, state.player.hp + 5);
+        spawnHealthPack(enemy.x, enemy.y, 6);
       }
       if (enemy.splittable && enemy.splitLevel < 3) {
         for (let j = 0; j < 2; j++) {

@@ -201,7 +201,9 @@ async function init() {
     bulletRangeMult: 1,       // global multiplier from upgrades
     coinMagnetRadius: 140,    // px
     coinCollectRadius: 28,    // px
-    regenPerSec: 1.5,
+    regenPerSec: 0, // no passive regen unless upgraded
+    regenDelayMs: 4000,
+    lastDamagedAt: performance.now(),
     lastRegenAt: 0,
     coinGainMult: 1,
     onKillHeal: 0,

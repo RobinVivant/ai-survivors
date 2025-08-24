@@ -26,12 +26,19 @@ function update(ts, deltaTime) {
   moveEnemies(deltaTime);
   moveBullets(deltaTime);
   handleCollisions();
-  // Passive health regen (1 tick/sec)
+  // Out-of-combat health regen (1 tick/sec after delay)
   if (state.player?.regenPerSec > 0 && state.player.hp > 0 && state.player.hp < state.player.maxHp) {
     const now = performance.now();
-    if (!state.player.lastRegenAt) state.player.lastRegenAt = now;
-    if (now - state.player.lastRegenAt >= 1000) {
-      state.player.hp = Math.min(state.player.maxHp, state.player.hp + state.player.regenPerSec);
+    const lastHit = (typeof state.player.lastDamagedAt === 'number') ? state.player.lastDamagedAt : -Infinity;
+    const delay = state.player.regenDelayMs || 4000;
+    if (now - lastHit >= delay) {
+      if (!state.player.lastRegenAt) state.player.lastRegenAt = now;
+      if (now - state.player.lastRegenAt >= 1000) {
+        state.player.hp = Math.min(state.player.maxHp, state.player.hp + state.player.regenPerSec);
+        state.player.lastRegenAt = now;
+      }
+    } else {
+      // reset timer while in combat so regen starts counting from last hit
       state.player.lastRegenAt = now;
     }
   }

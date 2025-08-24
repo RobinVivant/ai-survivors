@@ -67,6 +67,14 @@ export function playSound(type, frequency = 440, duration = 0.1, volume = 0.1) {
         oscillator.type = 'triangle';
         duration = 0.06;
         break;
+      case 'heal':
+        oscillator.frequency.setValueAtTime(500, ct);
+        oscillator.frequency.exponentialRampToValueAtTime(900, ct + 0.12);
+        gainNode.gain.setValueAtTime(0.06 * volScale, ct);
+        gainNode.gain.exponentialRampToValueAtTime(0.01 * volScale, ct + 0.12);
+        oscillator.type = 'sine';
+        duration = 0.12;
+        break;
       default:
         oscillator.frequency.setValueAtTime(frequency, ct);
         gainNode.gain.setValueAtTime(0.1 * volScale, ct);
