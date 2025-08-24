@@ -215,28 +215,6 @@ export function draw() {
     state.dom.ctx.restore();
   });
 
-  const weaponBarY = window.innerHeight - 40;
-  const totalWidth = state.player.weapons.length * 80;
-  const startX = (window.innerWidth - totalWidth) / 2;
-  state.player.weapons.forEach((wi, index) => {
-    const w = state.cfg.weapons[wi];
-    if (!w) return;
-    const barX = startX + index * 80;
-    const barWidth = 60;
-    const barHeight = 8;
-    const interval = 1000 / (w.fireRate || 1);
-    const timeSinceLastShot = Date.now() - (state.player.lastShotMap[wi] || 0);
-    const cooldownPercent = Math.min(1, timeSinceLastShot / interval);
-    state.dom.ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    state.dom.ctx.fillRect(barX, weaponBarY, barWidth, barHeight);
-    state.dom.ctx.fillStyle = cooldownPercent >= 1 ? '#00ff00' : '#ffff00';
-    state.dom.ctx.fillRect(barX, weaponBarY, barWidth * cooldownPercent, barHeight);
-    state.dom.ctx.fillStyle = '#fff';
-    state.dom.ctx.font = '10px Orbitron';
-    state.dom.ctx.textAlign = 'center';
-    state.dom.ctx.fillText(w.name || `W${index + 1}`, barX + barWidth / 2, weaponBarY - 8);
-  });
-
   if (state.player.invulnerable && Date.now() < state.player.invulnerable) {
     state.dom.ctx.save();
     state.dom.ctx.globalAlpha = 0.3;
