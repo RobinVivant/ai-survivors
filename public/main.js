@@ -95,14 +95,25 @@ function setupInput() {
       const w = state.cfg.weapons[i];
       if (!w) return '';
       const det = `DMG ${w.dmg || 1}, FR ${w.fireRate || 1}/s, SPD ${w.bulletSpeed || 5}` +
+                  `${w.bulletSize ? ', Size ' + w.bulletSize : ''}` +
+                  `${w.range ? ', RNG ' + Math.round(w.range * 400) + 'px' : ''}` +
                   `${w.piercing ? ', Pierce ' + w.piercing : ''}` +
                   `${w.explosive ? ', Expl ' + w.explosive : ''}` +
-                  `${w.homing ? ', Hom ' + w.homing : ''}`;
-      return `<span class="owned-item" title="${det}">${w.name}${w.level ? ' L' + w.level : ''}</span>`;
+                  `${w.homing ? ', Hom ' + w.homing : ''}` +
+                  `${w.chain ? ', Chain ' + w.chain : ''}` +
+                  `${w.splitShot ? ', Split +' + w.splitShot : ''}` +
+                  `${w.poison ? ', Poison ' + w.poison + 'ms' : ''}` +
+                  `${w.freeze ? ', Freeze ' + w.freeze + 'ms' : ''}` +
+                  `${w.bounces ? ', Bounce ' + w.bounces : ''}`;
+      return `<span class="owned-item" title="${det}">${w.name}${w.level ? ' L' + w.level : ''} — ${det}</span>`;
     }).join(' ');
-    const ownedUpgradesHtml = (state.ownedUpgrades || []).map(u =>
-      `<span class="owned-item" title="${u.description || ''}">${u.name}</span>`
-    ).join(' ');
+
+    const ownedUpgradesHtml = (state.ownedUpgrades || []).map(u => {
+      const eff = u.effect || {};
+      const valStr = typeof eff.value === 'number' ? (eff.value > 0 ? '+' + eff.value : '' + eff.value) : (eff.value || '');
+      const detail = eff.type ? `${eff.type}${valStr ? ' ' + valStr : ''}` : (u.description || '');
+      return `<span class="owned-item" title="${u.description || detail}">${u.name} — ${detail}</span>`;
+    }).join(' ');
     state.dom.upgradeOverlay.innerHTML = `
       <div class="overlay-card">
         <h2 class="overlay-title">PAUSED</h2>

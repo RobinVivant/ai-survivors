@@ -19,8 +19,11 @@ export function updateUI() {
   if (state.uiLastUpdate && now - state.uiLastUpdate < 100) return;
   state.uiLastUpdate = now;
 
-  const timeLeftMs = state.wave?.active ? Math.max(0, state.wave.endAt - performance.now()) : 0;
-  const secsLeft = Math.ceil(timeLeftMs / 1000);
+  const nowTime = performance.now();
+  const waveActiveOrEnding = state.wave?.active || state.wave?.lockSpawns;
+  const timeLeftMs = waveActiveOrEnding ? Math.max(-1000, (state.wave.endAt - nowTime)) : 0;
+  let secsLeft = Math.ceil(timeLeftMs / 1000);
+  if (secsLeft < 0) secsLeft = 0;
 
   // Run status bar
   if (state.dom.runFill) {
@@ -35,7 +38,7 @@ export function updateUI() {
   }
   // Final 10s countdown
   if (state.dom.countdown) {
-    if (state.wave?.active && secsLeft > 0 && secsLeft <= 10) {
+    if (waveActiveOrEnding && secsLeft >= 0 && secsLeft <= 10) {
       state.dom.countdown.textContent = secsLeft;
       state.dom.countdown.style.opacity = '1';
     } else {

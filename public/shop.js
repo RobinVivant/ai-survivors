@@ -118,13 +118,37 @@ export function openShop(onClose) {
     const btn = document.createElement('button');
     btn.className = 'upgrade-btn';
     btn.dataset.rarity = o.rarity || 'common';
-    btn.innerHTML = `
-      <div class="upgrade-head">
-        <div class="upgrade-name">[${idx + 1}] ${o.name}</div>
-        <div class="upgrade-rarity">${(o.rarity || 'common').toUpperCase()} • ${o.price}c</div>
-      </div>
-      <div class="upgrade-desc">${o.description}</div>
-    `;
+  let detailText = '';
+  if (o.kind === 'weapon') {
+    const w = state.cfg.weapons[o.weaponIndex];
+    if (w) {
+      detailText =
+        `DMG ${w.dmg || 1} • FR ${w.fireRate || 1}/s • SPD ${w.bulletSpeed || 5}` +
+        `${w.bulletSize ? ' • Size ' + w.bulletSize : ''}` +
+        `${w.range ? ' • RNG ' + Math.round(w.range * 400) + 'px' : ''}` +
+        `${w.piercing ? ' • Pierce ' + w.piercing : ''}` +
+        `${w.explosive ? ' • Expl ' + w.explosive : ''}` +
+        `${w.homing ? ' • Hom ' + w.homing : ''}` +
+        `${w.chain ? ' • Chain ' + w.chain : ''}` +
+        `${w.splitShot ? ' • Split +' + w.splitShot : ''}` +
+        `${w.poison ? ' • Poison ' + w.poison + 'ms' : ''}` +
+        `${w.freeze ? ' • Freeze ' + w.freeze + 'ms' : ''}` +
+        `${w.bounces ? ' • Bounce ' + w.bounces : ''}`;
+    }
+  } else if (o.kind === 'upgrade') {
+    const eff = o.upgrade?.effect || {};
+    const valStr = typeof eff.value === 'number' ? (eff.value > 0 ? '+' + eff.value : '' + eff.value) : (eff.value || '');
+    detailText = eff.type ? `${eff.type.toUpperCase()} ${valStr}` : '';
+  }
+
+  btn.innerHTML = `
+    <div class="upgrade-head">
+      <div class="upgrade-name">[${idx + 1}] ${o.name}</div>
+      <div class="upgrade-rarity">${(o.rarity || 'common').toUpperCase()} • ${o.price}c</div>
+    </div>
+    <div class="upgrade-desc">${o.description}</div>
+    ${detailText ? `<div class="upgrade-desc" style="opacity:0.9;margin-top:6px">${detailText}</div>` : ''}
+  `;
     btn.onclick = () => {
       if (btn.disabled) return;
       if (state.coins < o.price) return;

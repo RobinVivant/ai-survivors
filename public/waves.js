@@ -20,6 +20,9 @@ export function prepareWaveSpawner(names) {
   state.wave.durationMs = Math.min(60000, 25000 + w * 1500);
   state.wave.endAt = now + state.wave.durationMs;
 
+  state.wave.lockSpawns = false;
+  state.wave.shopAt = 0;
+
   state.wave.nextAt = now;
 }
 
@@ -34,6 +37,8 @@ export function updateWaveSpawner() {
     state.wave.nextAt = performance.now() + (state.wave.cooldownMs || 300);
     return;
   }
+
+  if (state.wave.lockSpawns) return;
 
   // Spawn a clustered burst from a screen edge
   const edge = Math.floor(Math.random() * 4);
@@ -82,9 +87,20 @@ export function loadWave() {
 
 export function maybeNextWave() {
   const now = performance.now();
-  if (state.wave.active && now >= state.wave.endAt) {
-    // End the wave
+  if (!state.wave.active) return;
+
+  // Enter 0-second grace phase
+  if (now >= state.wave.endAt && !state.wave.lockSpawns) {
+    state.wave.lockSpawns = true;
+    state.wave.shopAt = now + 900; // show "0" briefly
+    return;
+  }
+
+  // Grace phase finished -> finalize, then shop
+  if (state.wave.lockSpawns && now >= (state.wave.shopAt || 0)) {
     state.wave.active = false;
+    state.wave.lockSpawns = false;
+    state.wave.shopAt = 0;
 
     // Wave reward
     const waveBonus = (state.currentWave + 1) * 50;
@@ -94,7 +110,7 @@ export function maybeNextWave() {
       state.scoreMultiplier += 0.5;
     }
 
-    // Clear remaining enemies (Brotato-style cleanup)
+    // Clear remaining enemies
     state.activeEnemies.length = 0;
 
     // Final wave -> victory
