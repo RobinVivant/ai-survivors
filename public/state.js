@@ -42,6 +42,7 @@ export const state = {
   isFocused: true,
   animationId: null,
   uiLastUpdate: 0,
+  physics: null,
 
   // entities and fx
   activeEnemies: [],

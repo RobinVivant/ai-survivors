@@ -1,6 +1,7 @@
 import {DEFAULT_CONFIG} from './config.js';
 import {initStars, state} from './state.js';
 import {draw, loadWave, showGameOver, showWaveIndicator, update} from './systems.js';
+import {initPhysics} from './physics.js';
 
 function resizeCanvas() {
   if (!state.dom.canvas || !state.dom.ctx) return;
@@ -218,6 +219,8 @@ async function init() {
     // optional: tune contact hit cadence; collisions.js uses fixed intervals
     // contactTickMs: 300,
   };
+
+  initPhysics(); // NEW: Initialize physics after player is created
 
   state.loading = false;
   showWaveIndicator(1);

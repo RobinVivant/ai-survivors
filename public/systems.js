@@ -7,6 +7,7 @@ import {cleanupEntities, handleCollisions} from './collisions.js';
 import {loadWave, maybeNextWave, updateWaveSpawner} from './waves.js';
 import {showGameOver, showWaveIndicator, updateUI} from './ui.js';
 import {draw} from './renderer.js';
+import {updatePhysics} from './physics.js';
 
 function applyCoinSizeEffects() {
   if (!state.player) return;
@@ -24,6 +25,7 @@ function update(ts, deltaTime) {
   handlePlayerMovement(deltaTime);
   handleShooting(ts);
   moveEnemies(deltaTime);
+  updatePhysics(deltaTime); // NEW: AVBD resolves contacts/separation
   moveBullets(deltaTime);
   handleCollisions();
   // Out-of-combat health regen (1 tick/sec after delay)
