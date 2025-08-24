@@ -2,22 +2,23 @@ import { serve } from "bun";
 import { getAsset } from "./assets";
 import { Webview } from "webview-bun";
 
+async function waitUntilUp(url: string, timeoutMs: number = 5000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (res.ok) return;
+    } catch {}
+    await Bun.sleep(50);
+  }
+}
+
 console.log("Starting AI Survivors desktop app...");
 
 // Start embedded HTTP server on a fixed port for debugging
 const server = serve({
   port: 0, // let OS pick an available port
   fetch: async (req) => {
-    async function waitUntilUp(url, timeoutMs = 5000) {
-      const deadline = Date.now() + timeoutMs;
-      while (Date.now() < deadline) {
-        try {
-          const res = await fetch(url, { cache: "no-store" });
-          if (res.ok) return;
-        } catch {}
-        await Bun.sleep(50);
-      }
-    }
     const url = new URL(req.url);
     const pathname = url.pathname === "/" ? "/index.html" : url.pathname;
 
