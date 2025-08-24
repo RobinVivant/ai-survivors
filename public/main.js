@@ -103,7 +103,9 @@ function setupInput() {
                   `${w.splitShot ? ', Split +' + w.splitShot : ''}` +
                   `${w.poison ? ', Poison ' + w.poison + 'ms' : ''}` +
                   `${w.freeze ? ', Freeze ' + w.freeze + 'ms' : ''}` +
-                  `${w.bounces ? ', Bounce ' + w.bounces : ''}`;
+                  `${w.bounces ? ', Bounce ' + w.bounces : ''}` +
+                  `${w.contactDamage ? ', C-DMG ' + w.contactDamage : ''}` +
+                  `${w.contactDamage && w.range ? ', C-R ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}`;
       return `<span class="owned-item" title="${det}">${w.name}${w.level ? ' L' + w.level : ''} — ${det}</span>`;
     }).join(' ');
 
@@ -211,6 +213,10 @@ async function init() {
     lastRegenAt: 0,
     coinGainMult: 1,
     onKillHeal: 0,
+    contactDamageBase: 0,
+    contactThornsPercent: 0,
+    // optional: tune contact hit cadence; collisions.js uses fixed intervals
+    // contactTickMs: 300,
   };
 
   state.loading = false;

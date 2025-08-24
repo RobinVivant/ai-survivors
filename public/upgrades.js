@@ -151,6 +151,24 @@ function presentUpgradeChoices() {
       description: "Add explosion damage.",
       rarity: "epic"
     },
+    {
+      name: "Thorn Plating",
+      effect: {type: "contact_thorns", value: 0.25},
+      description: "Reflect 25% contact damage back to enemies.",
+      rarity: "rare"
+    },
+    {
+      name: "Bulldozer Frame",
+      effect: {type: "contact_damage", value: 2},
+      description: "+2 contact damage (ram).",
+      rarity: "epic"
+    },
+    {
+      name: "Reinforced Hull",
+      effect: {type: "hull_size", value: 4},
+      description: "+4 hull size (improves ram impact).",
+      rarity: "rare"
+    },
     ...aiPassivePool
   ];
 
@@ -388,6 +406,22 @@ export function applyUpgrade(upg) {
     case 'regen':
       state.player.regenPerSec = (state.player.regenPerSec || 0) + value;
       break;
+    case 'contact_damage':
+      state.player.contactDamageBase = (state.player.contactDamageBase || 0) + (value || 1);
+      break;
+    case 'contact_thorns':
+      state.player.contactThornsPercent = Math.min(0.9, (state.player.contactThornsPercent || 0) + (value || 0));
+      break;
+    case 'hull_size': {
+      const inc = Math.max(1, value || 1);
+      state.player.baseSize = (state.player.baseSize || 22) + inc;
+      state.player.size = state.player.baseSize;
+      // Slightly increase dash damage radius with hull size
+      const baseR = state.player.dash.baseDamageRadius || state.player.dash.damageRadius || 26;
+      state.player.dash.baseDamageRadius = baseR + Math.round(inc * 0.6);
+      state.player.dash.damageRadius = state.player.dash.baseDamageRadius;
+      break;
+    }
     default:
       break;
   }

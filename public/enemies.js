@@ -92,6 +92,9 @@ export function moveEnemies(deltaTime) {
       }
     }
 
+    const oldX = e.x;
+    const oldY = e.y;
+
     const dx = state.player.x - e.x;
     const dy = state.player.y - e.y;
     const dist = Math.hypot(dx, dy);
@@ -165,6 +168,11 @@ export function moveEnemies(deltaTime) {
         }
         break;
     }
+
+    const dxStep = e.x - oldX;
+    const dyStep = e.y - oldY;
+    e.vx = dxStep / timeMultiplier;
+    e.vy = dyStep / timeMultiplier;
 
     if (e.projectile && (!e.lastShot || Date.now() - e.lastShot > 2400)) {
       const angle = Math.atan2(dy, dx);

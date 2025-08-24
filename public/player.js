@@ -83,6 +83,26 @@ export function handleShooting(ts) {
     const interval = 1000 / (w.fireRate || 1);
     if ((ts - (state.player.lastShotMap[wi] || 0)) < interval) return;
 
+    // Contact weapon: aura/ram-style damage
+    if (w.contactDamage && w.contactDamage > 0) {
+      state.player.lastShotMap[wi] = ts;
+      const unit = state.rangeUnitPx || 500;
+      const radius = (w.range ? w.range * unit : state.player.size + 8);
+      let hitAny = false;
+      state.activeEnemies.forEach(e => {
+        const d = Math.hypot(e.x - state.player.x, e.y - state.player.y);
+        if (d <= radius) {
+          e.hp -= w.contactDamage;
+          hitAny = true;
+        }
+      });
+      if (hitAny) {
+        createTrailParticle(state.player.x, state.player.y, w.bulletColor || '#66ff88');
+        playSound('hit');
+      }
+      return; // do not shoot bullets for contact weapons
+    }
+
     // Compute this weapon's effective range in pixels
     const unit = state.rangeUnitPx || 500;
     const baseRangePx = (w.range ? w.range * unit : state.player.bulletRange);

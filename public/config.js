@@ -23,7 +23,8 @@ export const DEFAULT_CONFIG = {
     {name: "Plasma Repeater", dmg: 6, fireRate: 3.5, bulletSpeed: 8, bulletSize: 3, bulletColor: "#ff66aa", price: 200, description: "Fast, relentless fire", piercing: 1, spread: 0.06, range: 1.2},
     {name: "Homing Missiles", dmg: 6, fireRate: 1.9, bulletSpeed: 6, bulletSize: 3, bulletColor: "#00ff99", price: 280, description: "Seeks targets", homing: 0.12, explosive: 28, range: 1.4},
     {name: "Quantum Bouncer", dmg: 7, fireRate: 2.2, bulletSpeed: 8, bulletSize: 3, bulletColor: "#ff99cc", price: 240, description: "Ricocheting rounds", bounces: 3, range: 1.1},
-    {name: "Laser Storm", dmg: 3, fireRate: 6.5, bulletSpeed: 10, bulletSize: 2, bulletColor: "#ffff66", price: 230, description: "Shredding light", splitShot: 2, spread: 0.12, range: 1.0}
+    {name: "Laser Storm", dmg: 3, fireRate: 6.5, bulletSpeed: 10, bulletSize: 2, bulletColor: "#ffff66", price: 230, description: "Shredding light", splitShot: 2, spread: 0.12, range: 1.0},
+    {name: "Spinning Blades", contactDamage: 4, fireRate: 6, range: 0.22, bulletColor: "#66ff88", price: 190, description: "Damages nearby enemies in a tight radius"},
   ],
   waves: [
     Array(16).fill("DataMite"),
@@ -64,7 +65,10 @@ export const DEFAULT_CONFIG = {
     {name: "Purchase: Plasma Repeater", effect: {type: "weapon", value: "Plasma Repeater"}, description: "Fast, relentless fire", rarity: "rare"},
     {name: "Purchase: Homing Missiles", effect: {type: "weapon", value: "Homing Missiles"}, description: "Seeks targets", rarity: "epic"},
     {name: "Purchase: Quantum Bouncer", effect: {type: "weapon", value: "Quantum Bouncer"}, description: "Ricocheting rounds", rarity: "epic"},
-    {name: "Purchase: Laser Storm", effect: {type: "weapon", value: "Laser Storm"}, description: "Shredding light", rarity: "rare"}
+    {name: "Purchase: Laser Storm", effect: {type: "weapon", value: "Laser Storm"}, description: "Shredding light", rarity: "rare"},
+    {name: "Thorn Plating", effect: {type: "contact_thorns", value: 0.25}, description: "Reflect 25% of contact damage back to enemies", rarity: "rare"},
+    {name: "Bulldozer Frame", effect: {type: "contact_damage", value: 2}, description: "+2 contact damage (ram)", rarity: "epic"},
+    {name: "Reinforced Hull", effect: {type: "hull_size", value: 4}, description: "+4 hull size (improves ram impact)", rarity: "rare"},
   ],
   background: "#0a0420"
 };

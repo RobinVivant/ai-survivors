@@ -67,6 +67,102 @@ export function handleCollisions() {
   const CELL = 64;
   const enemyHash = buildSpatialHash(state.activeEnemies, CELL);
 
+  // Resolve enemy-enemy overlaps with size-based inertia
+  state.activeEnemies.forEach(e => {
+    const neighbors = querySpatialHash(enemyHash, e.x, e.y, e.size + 64);
+    neighbors.forEach(o => {
+      if (o === e) return;
+      const dx = o.x - e.x;
+      const dy = o.y - e.y;
+      const dist = Math.hypot(dx, dy) || 0.0001;
+      const minDist = (e.size || 0) + (o.size || 0);
+      if (dist < minDist) {
+        const nx = dx / dist;
+        const ny = dy / dist;
+        const overlap = minDist - dist;
+
+        const m1 = Math.max(1, (e.size || 1) * (e.size || 1));
+        const m2 = Math.max(1, (o.size || 1) * (o.size || 1));
+        const inv1 = 1 / m1;
+        const inv2 = 1 / m2;
+        const invSum = inv1 + inv2;
+
+        const move1 = overlap * (inv1 / invSum);
+        const move2 = overlap * (inv2 / invSum);
+
+        e.x -= nx * move1;
+        e.y -= ny * move1;
+        o.x += nx * move2;
+        o.y += ny * move2;
+      }
+    });
+  });
+
+  // Player-enemy separation + contact damage
+  const p = state.player;
+  const playerNeighbors = querySpatialHash(enemyHash, p.x, p.y, p.size + CELL);
+  const nowMs = Date.now();
+  playerNeighbors.forEach(e => {
+    const dx = e.x - p.x;
+    const dy = e.y - p.y;
+    const dist = Math.hypot(dx, dy) || 0.0001;
+    const minDist = (e.size || 0) + (p.size || 0);
+    if (dist < minDist) {
+      const nx = dx / dist;
+      const ny = dy / dist;
+      const overlap = minDist - dist;
+
+      // Separate with inertia (player heavier to avoid huge displacement)
+      const mEnemy = Math.max(1, (e.size || 1) * (e.size || 1));
+      const mPlayer = Math.max(1, (p.size || 1) * (p.size || 1) * 2); // player ~2x area-mass
+      const invE = 1 / mEnemy;
+      const invP = 1 / mPlayer;
+      const invSum = invE + invP;
+      const moveE = overlap * (invE / invSum);
+      const moveP = overlap * (invP / invSum);
+
+      e.x += nx * moveE;
+      e.y += ny * moveE;
+      p.x -= nx * moveP;
+      p.y -= ny * moveP;
+
+      // Contact damage to player, rate-limited and scaled by enemy size/inertia
+      const tick = 350; // ms between contact hits per enemy
+      if ((!p.invulnerable || nowMs > p.invulnerable) && nowMs - (e._lastContactToPlayerAt || 0) >= tick) {
+        const base = e.damage || 1;
+        const sizeFactor = 0.6 + (Math.min(24, e.size || 0) / 20); // ~0.6..1.8
+        const contactDmg = Math.max(1, Math.round(base * sizeFactor));
+        p.hp -= contactDmg;
+        p.invulnerable = nowMs + 450; // brief i-frames for contact hits
+        p.lastDamagedAt = performance.now();
+        createParticles(p.x, p.y, '#ff4444', 6, 'damage');
+        addCameraShake(2, 6);
+        playSound('damage');
+        e._lastContactToPlayerAt = nowMs;
+
+        // Thorns reflect a portion of that hit back to the enemy
+        const thornsPct = p.contactThornsPercent || 0;
+        if (thornsPct > 0) {
+          const reflect = Math.max(1, Math.round(contactDmg * thornsPct));
+          e.hp -= reflect;
+          createParticles(e.x, e.y, '#66ff88', 4, 'hit');
+        }
+      }
+
+      // Player body/contact damage to enemy (ram), rate-limited
+      const baseRam = p.contactDamageBase || 0;
+      if (baseRam > 0 && nowMs - (e._lastRamHitAt || 0) >= 220) {
+        const sizeScale = Math.max(0.75, (p.size || 1) / (p.baseSize || 22));
+        const speedScale = 0.8 + Math.min(0.7, Math.hypot(p.velocity.x || 0, p.velocity.y || 0) / 12);
+        const ramDmg = Math.max(1, Math.round(baseRam * sizeScale * speedScale));
+        e.hp -= ramDmg;
+        createParticles(e.x, e.y, '#99ffcc', 5, 'hit');
+        addCameraShake(1, 3);
+        e._lastRamHitAt = nowMs;
+      }
+    }
+  });
+
   // Dash damage aura (while invulnerable due to dash)
   if (state.player?.dash?.damage > 0 && Date.now() <= (state.player.dash.activeUntil || 0)) {
     const R = state.player.dash.damageRadius || (state.player.size + 10);
@@ -82,19 +178,8 @@ export function handleCollisions() {
     });
   }
 
+  // Only enemy projectiles hurt the player here; contact is handled above with separation and rate-limited hits
   if (!state.player.invulnerable || Date.now() > state.player.invulnerable) {
-    const playerCandidates = querySpatialHash(enemyHash, state.player.x, state.player.y, state.player.size + CELL);
-    playerCandidates.forEach(e => {
-      if (Math.hypot(e.x - state.player.x, e.y - state.player.y) < state.player.size + e.size) {
-        const damage = e.damage || 1;
-        state.player.hp -= damage;
-        state.player.invulnerable = Date.now() + 500;
-        state.player.lastDamagedAt = performance.now();
-        createParticles(state.player.x, state.player.y, '#ff4444', 8, 'damage');
-        addCameraShake(3, 8);
-        playSound('damage');
-      }
-    });
     state.bullets.forEach(b => {
       if (b.enemy && Math.hypot(state.player.x - b.x, state.player.y - b.y) < state.player.size + b.size) {
         state.player.hp -= b.dmg;

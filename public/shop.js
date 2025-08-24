@@ -107,7 +107,9 @@ export function openShop(onClose) {
                   `${w.splitShot ? ', Split +' + w.splitShot : ''}` +
                   `${w.poison ? ', Poison ' + w.poison + 'ms' : ''}` +
                   `${w.freeze ? ', Freeze ' + w.freeze + 'ms' : ''}` +
-                  `${w.bounces ? ', Bounce ' + w.bounces : ''}`;
+                  `${w.bounces ? ', Bounce ' + w.bounces : ''}` +
+                  `${w.contactDamage ? ', C-DMG ' + w.contactDamage : ''}` +
+                  `${w.contactDamage && w.range ? ', C-R ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}`;
       return `<span class="owned-item" title="${det}">${w.name}${w.level ? ' L' + w.level : ''} — ${det}</span>`;
     }).join(' ');
 
@@ -149,7 +151,9 @@ export function openShop(onClose) {
         `${w.splitShot ? ' • Split +' + w.splitShot : ''}` +
         `${w.poison ? ' • Poison ' + w.poison + 'ms' : ''}` +
         `${w.freeze ? ' • Freeze ' + w.freeze + 'ms' : ''}` +
-        `${w.bounces ? ' • Bounce ' + w.bounces : ''}`;
+        `${w.bounces ? ' • Bounce ' + w.bounces : ''}` +
+        `${w.contactDamage ? ' • C-DMG ' + w.contactDamage : ''}` +
+        `${w.contactDamage && w.range ? ' • C-R ' + Math.round(w.range * (state.rangeUnitPx || 500)) + 'px' : ''}`;
     }
   } else if (o.kind === 'upgrade') {
     const eff = o.upgrade?.effect || {};
