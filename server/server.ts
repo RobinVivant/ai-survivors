@@ -28,7 +28,7 @@ const getFileFromDisk = async (pathname: string) => {
     const mimeType = mimeTypes[ext || ''] || 'application/octet-stream';
     
     return new Response(file, {
-      headers: { "Content-Type": mimeType },
+      headers: { "Content-Type": mimeType, "Cache-Control": "no-store" },
     });
   }
   return null;
@@ -41,11 +41,14 @@ const server = serve({
     const url = new URL(req.url);
     const pathname = url.pathname === "/" ? "/index.html" : url.pathname;
 
+    const accept = req.headers.get("Accept") || "";
+    const wantsHtml = accept.includes("text/html");
+
     // Try embedded assets first
     const asset = getAsset(pathname);
     if (asset) {
       return new Response(asset.content, {
-        headers: { "Content-Type": asset.mimeType },
+        headers: { "Content-Type": asset.mimeType, "Cache-Control": "no-store" },
       });
     }
 
@@ -63,19 +66,20 @@ const server = serve({
     }
 
     // SPA fallback to index.html
-    const indexAsset = getAsset("/index.html");
-    if (indexAsset) {
+    const indexAsset = wantsHtml ? getAsset("/index.html") : undefined;
+    if (indexAsset && wantsHtml) {
       return new Response(indexAsset.content, {
-        headers: { "Content-Type": indexAsset.mimeType },
+        headers: { "Content-Type": indexAsset.mimeType, "Cache-Control": "no-store" },
       });
     }
 
-    // Final fallback to filesystem index.html
-    try {
-      const response = await getFileFromDisk("/index.html");
-      if (response) return response;
-    } catch (error) {
-      console.error("Error serving index.html:", error);
+    if (wantsHtml) {
+      try {
+        const response = await getFileFromDisk("/index.html");
+        if (response) return response;
+      } catch (error) {
+        console.error("Error serving index.html:", error);
+      }
     }
 
     return new Response("Not Found", { status: 404 });

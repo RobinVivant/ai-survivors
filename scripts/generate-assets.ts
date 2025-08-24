@@ -67,7 +67,7 @@ ${assets.join(',\n')}
 };
 
 export function getAsset(path: string): Asset | undefined {
-  return assets[path] || assets["/index.html"]; // fallback to index.html for SPA
+  return assets[path];
 }
 `;
 

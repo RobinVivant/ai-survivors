@@ -22,12 +22,16 @@ const server = serve({
     const url = new URL(req.url);
     const pathname = url.pathname === "/" ? "/index.html" : url.pathname;
 
+    const accept = req.headers.get("Accept") || "";
+    const wantsHtml = accept.includes("text/html");
+
     // Serve embedded assets
     const asset = getAsset(pathname);
     if (asset) {
       return new Response(asset.content, {
-        headers: { 
+        headers: {
           "Content-Type": asset.mimeType,
+          "Cache-Control": "no-store",
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
           "Access-Control-Allow-Headers": "*"
@@ -36,15 +40,18 @@ const server = serve({
     }
 
     // SPA fallback to index.html
-    const indexAsset = getAsset("/index.html");
-    if (indexAsset) {
+    const indexAsset = wantsHtml ? getAsset("/index.html") : undefined;
+    if (indexAsset && wantsHtml) {
       return new Response(indexAsset.content, {
-        headers: { 
+        headers: {
           "Content-Type": indexAsset.mimeType,
+          "Cache-Control": "no-store",
           "Access-Control-Allow-Origin": "*"
         },
       });
     }
+    // Optional debug aid
+    console.warn("[ASSETS] Not found:", pathname);
 
     return new Response("Not Found", { status: 404 });
   },
@@ -57,6 +64,7 @@ console.log(`✓ Launching WebView: ${addr}`);
 await waitUntilUp(addr);
 
 const webview = new Webview();
+try { (webview as any).debug = true; } catch {}
 webview.width = 1280;
 webview.height = 800;
 webview.title = "AI Survivors";
