@@ -82,15 +82,39 @@ export function handleShooting(ts) {
     if (!w) return;
     const interval = 1000 / (w.fireRate || 1);
     if ((ts - (state.player.lastShotMap[wi] || 0)) < interval) return;
-    state.player.lastShotMap[wi] = ts;
 
-    const dx = nearestEnemy.x - state.player.x;
-    const dy = nearestEnemy.y - state.player.y;
-    const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * (w.spread || 0);
-    const speed = w.bulletSpeed || w.speed || 5;
+    // Compute this weapon's effective range in pixels
     const unit = state.rangeUnitPx || 500;
     const baseRangePx = (w.range ? w.range * unit : state.player.bulletRange);
     const maxDist = baseRangePx * (state.player.bulletRangeMult || 1);
+
+    // Pick a target this weapon can actually reach
+    let targetEnemy = nearestEnemy;
+    if (targetEnemy) {
+      const d = Math.hypot(targetEnemy.x - state.player.x, targetEnemy.y - state.player.y);
+      if (d > maxDist) targetEnemy = null;
+    }
+    if (!targetEnemy) {
+      let best = null;
+      let bestDist = maxDist;
+      state.activeEnemies.forEach(enemy => {
+        const d = Math.hypot(enemy.x - state.player.x, enemy.y - state.player.y);
+        if (d <= maxDist && d < bestDist) {
+          bestDist = d;
+          best = enemy;
+        }
+      });
+      if (!best) return; // no target in range for this weapon
+      targetEnemy = best;
+    }
+
+    // Mark shot only when we actually fire
+    state.player.lastShotMap[wi] = ts;
+
+    const dx = targetEnemy.x - state.player.x;
+    const dy = targetEnemy.y - state.player.y;
+    const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * (w.spread || 0);
+    const speed = w.bulletSpeed || w.speed || 5;
 
     const bullet = {
       x: state.player.x,
@@ -111,7 +135,7 @@ export function handleShooting(ts) {
       bounces: w.bounces || 0,
       bounceCount: 0,
       splitShot: w.splitShot || 0,
-      target: null,
+      target: (w.homing ? targetEnemy : null),
       travel: 0,
       maxDist,
     };
