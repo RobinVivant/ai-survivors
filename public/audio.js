@@ -1,5 +1,6 @@
 import {state} from './state.js';
 
+//Unused parameter volume  ai!
 export function playSound(type, frequency = 440, duration = 0.1, volume = 0.1) {
   if (!state.audioContext) return;
   try {
