@@ -2,10 +2,15 @@ import {state} from './state.js';
 import {addCameraShake, createLightningEffect, createParticles} from './effects.js';
 import {playSound} from './audio.js';
 import {createEnemyInstance} from './enemies.js';
+import {buildSpatialHash, querySpatialHash} from './spatial.js';
 
 export function handleCollisions() {
+  const CELL = 64;
+  const enemyHash = buildSpatialHash(state.activeEnemies, CELL);
+
   if (!state.player.invulnerable || Date.now() > state.player.invulnerable) {
-    state.activeEnemies.forEach(e => {
+    const playerCandidates = querySpatialHash(enemyHash, state.player.x, state.player.y, state.player.size + CELL);
+    playerCandidates.forEach(e => {
       if (Math.hypot(e.x - state.player.x, e.y - state.player.y) < state.player.size + e.size) {
         const damage = e.damage || 1;
         state.player.hp -= damage;
@@ -30,7 +35,8 @@ export function handleCollisions() {
   state.bullets.forEach(b => {
     if (b._hit || b.enemy) return;
     let hitEnemy = null;
-    state.activeEnemies.forEach(e => {
+    const candidates = querySpatialHash(enemyHash, b.x, b.y, (b.size || 3) + CELL);
+    candidates.forEach(e => {
       if (Math.hypot(e.x - b.x, e.y - b.y) < e.size + b.size) {
         if (e.shieldActive && e.shieldHp > 0) {
           const shieldDamage = Math.min(e.shieldHp, b.dmg);
@@ -59,7 +65,8 @@ export function handleCollisions() {
           e.speed = e.originalSpeed * 0.3;
         }
         if (b.explosive > 0) {
-          state.activeEnemies.forEach(other => {
+          const aoe = querySpatialHash(enemyHash, e.x, e.y, b.explosive);
+          aoe.forEach(other => {
             if (other !== e) {
               const dist = Math.hypot(other.x - e.x, other.y - e.y);
               if (dist < b.explosive) {
@@ -74,7 +81,8 @@ export function handleCollisions() {
         if (b.chain > 0 && b.chainCount < b.chain) {
           let nearestEnemy = null;
           let minDist = 100;
-          state.activeEnemies.forEach(other => {
+          const chainCands = querySpatialHash(enemyHash, e.x, e.y, minDist);
+          chainCands.forEach(other => {
             if (other !== e && !other._chained) {
               const dist = Math.hypot(other.x - e.x, other.y - e.y);
               if (dist < minDist) {
