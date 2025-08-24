@@ -54,6 +54,18 @@ function presentUpgradeChoices() {
       rarity: "rare"
     },
     {
+      name: "Range Booster",
+      effect: {type: "range", value: 0.25},
+      description: "Increase bullet range by 25%.",
+      rarity: "rare"
+    },
+    {
+      name: "Coin Magnet",
+      effect: {type: "magnet", value: 60},
+      description: "Increase coin pickup radius.",
+      rarity: "common"
+    },
+    {
       name: "Full Heal",
       effect: {type: "health", value: state.player.maxHp},
       description: "Restore all health.",
@@ -238,6 +250,17 @@ export function applyUpgrade(upg) {
       }
       break;
     }
+    case 'range':
+      // Global bullet range multiplier
+      state.player.bulletRangeMult = (state.player.bulletRangeMult || 1) * (1 + value);
+      break;
+    case 'magnet':
+      state.player.coinMagnetRadius = (state.player.coinMagnetRadius || 120) + value;
+      state.player.coinCollectRadius = Math.min(
+        (state.player.coinCollectRadius || state.player.size + 8) + Math.floor(value / 2),
+        (state.player.coinMagnetRadius || 120) - 10
+      );
+      break;
     case 'speed':
       state.player.baseSpeed += value;
       state.player.speed = state.player.baseSpeed;

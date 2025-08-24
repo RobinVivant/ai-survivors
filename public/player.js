@@ -85,6 +85,8 @@ export function handleShooting(ts) {
     const dy = nearestEnemy.y - state.player.y;
     const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * (w.spread || 0);
     const speed = w.bulletSpeed || w.speed || 5;
+    const baseRangePx = (w.range ? w.range * 400 : state.player.bulletRange);
+    const maxDist = baseRangePx * (state.player.bulletRangeMult || 1);
 
     const bullet = {
       x: state.player.x,

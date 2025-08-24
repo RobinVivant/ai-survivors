@@ -5,19 +5,13 @@ import {createEnemyInstance} from './enemies.js';
 import {buildSpatialHash, querySpatialHash} from './spatial.js';
 
 function computeCoinDrop(e) {
-  const hpComponent = (e.maxHp || e.hp || 10) / 20;
-  const speedComponent = (e.speed || 1) * 0.4;
-  const projectileBonus = e.projectile ? 2 : 0;
-  let abilityBonus = 0;
-  switch (e.specialAbility) {
-    case 'shield': abilityBonus = 2; break;
-    case 'rage': abilityBonus = 1.5; break;
-    case 'teleport': abilityBonus = 2; break;
-    case 'split': abilityBonus = 1.5; break;
-  }
-  const behaviorBonus = (e.behavior === 'kamikaze' || e.behavior === 'sniper') ? 1 : 0;
-  const base = hpComponent + speedComponent + projectileBonus + abilityBonus + behaviorBonus;
-  return Math.max(1, Math.round(base));
+  const points = Math.max(1, e.points || 1);
+  const projectileBonus = e.projectile ? 0.2 : 0;
+  const abilityBonus = ({shield: 0.4, rage: 0.3, teleport: 0.4, split: 0.3}[e.specialAbility] || 0);
+  const behaviorBonus = (e.behavior === 'kamikaze' || e.behavior === 'sniper') ? 0.2 : 0;
+  const base = points * 0.12 + projectileBonus + abilityBonus + behaviorBonus;
+  const variance = (Math.random() * 0.6 - 0.3);
+  return Math.max(0, Math.round(base + variance));
 }
 
 function spawnPickups(amount, x, y) {
@@ -26,7 +20,8 @@ function spawnPickups(amount, x, y) {
     {type: 'lingo',   value: 5,  color: '#ff66cc', size: 5},
     {type: 'coin',    value: 1,  color: '#ffdd55', size: 4},
   ];
-  let remaining = Math.max(1, Math.floor(amount));
+  let remaining = Math.floor(amount);
+  if (remaining <= 0) return;
   const items = [];
   for (const d of denoms) {
     while (remaining >= d.value && items.length < 20) {
@@ -34,7 +29,7 @@ function spawnPickups(amount, x, y) {
       remaining -= d.value;
     }
   }
-  if (!items.length) items.push(denoms[2]);
+  if (!items.length) return;
   items.forEach(d => {
     const ang = Math.random() * Math.PI * 2;
     const spd = Math.random() * 2 + 1;
@@ -172,7 +167,8 @@ export function handleCollisions() {
   for (let i = state.pickups.length - 1; i >= 0; i--) {
     const p = state.pickups[i];
     const dist = Math.hypot(p.x - state.player.x, p.y - state.player.y);
-    if (dist < state.player.size + p.size + 4) {
+    const collectR = state.player.coinCollectRadius || (state.player.size + p.size + 4);
+    if (dist < collectR) {
       state.coins += p.value || 1;
       createParticles(p.x, p.y, p.color || '#ffdd55', 8, 'coin');
       playSound('coin');
@@ -226,8 +222,9 @@ export function cleanupEntities() {
     const dx = state.player.x - p.x;
     const dy = state.player.y - p.y;
     const d = Math.hypot(dx, dy) || 1;
-    if (d < 100) {
-      const pull = (100 - d) / 100 * 0.4;
+    const magnetR = state.player.coinMagnetRadius || 100;
+    if (d < magnetR) {
+      const pull = (magnetR - d) / magnetR * 0.4;
       p.vx += (dx / d) * pull;
       p.vy += (dy / d) * pull;
     }

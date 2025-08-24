@@ -165,6 +165,10 @@ async function init() {
     acceleration: 0.3,
     friction: 0.85,
     dash: {ready: true, duration: 200, cooldown: 1000, lastUsed: 0},
+    bulletRange: 700,         // px
+    bulletRangeMult: 1,       // global multiplier from upgrades
+    coinMagnetRadius: 120,    // px
+    coinCollectRadius: 24,    // px
   };
 
   state.loading = false;

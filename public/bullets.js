@@ -4,6 +4,7 @@ import {createTrailParticle} from './effects.js';
 export function moveBullets(deltaTime) {
   const timeMultiplier = deltaTime / 16.67;
   state.bullets.forEach(b => {
+    const stepDist = Math.hypot(b.dx, b.dy) * timeMultiplier;
     if (b.homing > 0 && b.target && state.activeEnemies.includes(b.target)) {
       const dx = b.target.x - b.x;
       const dy = b.target.y - b.y;
@@ -43,6 +44,10 @@ export function moveBullets(deltaTime) {
     }
     b.x += b.dx * timeMultiplier;
     b.y += b.dy * timeMultiplier;
+    b.travel = (b.travel || 0) + stepDist;
+    if (b.maxDist && b.travel >= b.maxDist) {
+      b._hit = true;
+    }
     if (Math.random() < 0.1) {
       createTrailParticle(b.x, b.y, b.color);
     }

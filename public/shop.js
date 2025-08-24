@@ -16,10 +16,10 @@ function pickRandom(arr, n) {
 
 function priceForUpgrade(upg) {
   const r = (upg.rarity || 'common').toLowerCase();
-  const base = r === 'legendary' ? 150 :
-               r === 'epic'      ? 90  :
-               r === 'rare'      ? 60  : 35;
-  const waveDisc = 1 - Math.min(0.3, (state.currentWave || 0) * 0.03);
+  const base = r === 'legendary' ? 110 :
+               r === 'epic'      ? 70  :
+               r === 'rare'      ? 45  : 25;
+  const waveDisc = 1 - Math.min(0.35, (state.currentWave || 0) * 0.035);
   return Math.max(5, Math.round(base * waveDisc));
 }
 
@@ -36,7 +36,7 @@ export function openShop(onClose) {
       kind: 'weapon',
       name: `Buy Weapon: ${w.name}`,
       description: w.description || '',
-      price: Math.max(10, w.price || 100),
+      price: Math.max(10, w.price || 80),
       weaponIndex: i,
       rarity: 'epic'
     });

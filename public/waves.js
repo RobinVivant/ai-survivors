@@ -89,7 +89,7 @@ export function maybeNextWave() {
     // Wave reward
     const waveBonus = (state.currentWave + 1) * 50;
     state.score += waveBonus;
-    state.coins += Math.ceil(waveBonus / 5);
+    state.coins += Math.ceil(waveBonus / 8);
     if ((state.currentWave + 1) % 3 === 0) {
       state.scoreMultiplier += 0.5;
     }
