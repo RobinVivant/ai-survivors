@@ -8,6 +8,16 @@ console.log("Starting AI Survivors desktop app...");
 const server = serve({
   port: 0, // let OS pick an available port
   fetch: async (req) => {
+    async function waitUntilUp(url, timeoutMs = 5000) {
+      const deadline = Date.now() + timeoutMs;
+      while (Date.now() < deadline) {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (res.ok) return;
+        } catch {}
+        await Bun.sleep(50);
+      }
+    }
     const url = new URL(req.url);
     const pathname = url.pathname === "/" ? "/index.html" : url.pathname;
 
@@ -39,9 +49,11 @@ const server = serve({
   },
 });
 
-console.log(`✓ Server running on http://localhost:9999`);
-const addr = `http://localhost:${server.port}/`;
+console.log(`✓ Server running on http://127.0.0.1:${server.port}`);
+const host = process.env.WEBVIEW_HOST || "127.0.0.1";
+const addr = `http://${host}:${server.port}/`;
 console.log(`✓ Launching WebView: ${addr}`);
+await waitUntilUp(addr);
 
 const webview = new Webview();
 webview.width = 1280;

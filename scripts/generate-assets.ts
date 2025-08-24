@@ -10,8 +10,8 @@ const getMimeType = (filePath: string): string => {
   const ext = extname(filePath).toLowerCase().slice(1);
   const mimeTypes: Record<string, string> = {
     'html': 'text/html; charset=utf-8',
-    'css': 'text/css',
-    'js': 'text/javascript',
+    'css': 'text/css; charset=utf-8',
+    'js': 'text/javascript; charset=utf-8',
     'json': 'application/json',
     'png': 'image/png',
     'jpg': 'image/jpeg',
@@ -51,14 +51,14 @@ const assets: string[] = [];
 for (const file of files) {
   const relativePath = relative(publicDir, file);
   const urlPath = "/" + relativePath.replace(/\\/g, "/");
-  const filePath = `"${file.replace(/\\/g, "/")}"`; // Use absolute path for Bun.file()
-  
-  assets.push(`  "${urlPath}": { content: Bun.file(${filePath}), mimeType: "${getMimeType(file)}" }`);
+  const buf = await Bun.file(file).arrayBuffer();
+  const bytes = Array.from(new Uint8Array(buf));
+  assets.push(`  "${urlPath}": { content: new Uint8Array([${bytes.join(',')}]), mimeType: "${getMimeType(file)}" }`);
 }
 
 const content = `// Auto-generated embedded assets
 export interface Asset {
-  content: BunFile;
+  content: Uint8Array;
   mimeType: string;
 }
 
