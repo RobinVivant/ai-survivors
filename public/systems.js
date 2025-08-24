@@ -5,7 +5,6 @@ import {handlePlayerMovement, handleShooting} from './player.js';
 import {cleanupEntities, handleCollisions} from './collisions.js';
 import {loadWave, maybeNextWave, updateWaveSpawner} from './waves.js';
 import {showGameOver, showWaveIndicator, updateUI} from './ui.js';
-import {checkForUpgrade} from './upgrades.js';
 import {draw} from './renderer.js';
 
 function update(ts, deltaTime) {
@@ -19,7 +18,6 @@ function update(ts, deltaTime) {
   updateParticles(deltaTime);
   updateCameraShake();
   maybeNextWave();
-  checkForUpgrade();
   updateUI();
 }
 

@@ -1,21 +1,41 @@
 import {state} from './state.js';
 import {createEnemyInstance} from './enemies.js';
 import {showVictory, showWaveIndicator, updateUI} from './ui.js';
+import {openShop} from './shop.js';
 
 export function prepareWaveSpawner(names) {
   const w = state.currentWave || 0;
-  state.wave.spawnPerBurst = Math.min(12, 5 + Math.floor(w / 2));
-  state.wave.cooldownMs = Math.max(160, 380 - w * 14);
+  const now = performance.now();
+
+  state.wave.active = true;
+  state.wave.types = Array.isArray(names) ? names.slice() : [];
+
+  // Scaling
+  state.wave.spawnCap = Math.min(32, 8 + w * 2);
+  state.wave.spawnPerBurst = Math.min(12, 3 + Math.floor(w / 2));
+  state.wave.cooldownMs = Math.max(120, 400 - w * 12);
   state.wave.clusterRadius = Math.min(160, 60 + w * 5);
-  state.wave.queue = Array.isArray(names) ? [...names] : [];
-  state.wave.nextAt = performance.now();
+
+  // Wave duration
+  state.wave.durationMs = Math.min(60000, 25000 + w * 1500);
+  state.wave.endAt = now + state.wave.durationMs;
+
+  state.wave.nextAt = now;
 }
 
 export function updateWaveSpawner() {
-  if (!state.wave.queue || state.wave.queue.length === 0) return;
+  if (!state.wave.active) return;
   if (performance.now() < state.wave.nextAt) return;
 
-  const burst = Math.min(state.wave.spawnPerBurst || 8, state.wave.queue.length);
+  // Fill up to spawnCap
+  const deficit = Math.max(0, (state.wave.spawnCap || 0) - state.activeEnemies.length);
+  const toSpawn = Math.min(state.wave.spawnPerBurst || 0, deficit);
+  if (toSpawn <= 0) {
+    state.wave.nextAt = performance.now() + (state.wave.cooldownMs || 300);
+    return;
+  }
+
+  // Spawn a clustered burst from a screen edge
   const edge = Math.floor(Math.random() * 4);
   let cx, cy;
   if (edge === 0) {
@@ -32,12 +52,14 @@ export function updateWaveSpawner() {
     cy = Math.random() * window.innerHeight;
   }
 
-  for (let i = 0; i < burst; i++) {
-    const name = state.wave.queue.shift();
-    const e = createEnemyInstance(name);
+  for (let i = 0; i < toSpawn; i++) {
     const r = state.wave.clusterRadius || 60;
     const rx = (Math.random() - 0.5) * r * 2;
     const ry = (Math.random() - 0.5) * r * 2;
+    const names = state.wave.types;
+    const name = names.length ? names[Math.floor(Math.random() * names.length)] : null;
+    if (!name) break;
+    const e = createEnemyInstance(name);
     e.x = Math.max(-20, Math.min(window.innerWidth + 20, cx + rx));
     e.y = Math.max(-20, Math.min(window.innerHeight + 20, cy + ry));
     state.activeEnemies.push(e);
@@ -59,17 +81,33 @@ export function loadWave() {
 }
 
 export function maybeNextWave() {
-  if (state.wave.queue.length === 0 && !state.activeEnemies.length && state.currentWave < state.cfg.waves.length) {
+  const now = performance.now();
+  if (state.wave.active && now >= state.wave.endAt) {
+    // End the wave
+    state.wave.active = false;
+
+    // Wave reward
     const waveBonus = (state.currentWave + 1) * 50;
     state.score += waveBonus;
     state.coins += Math.ceil(waveBonus / 5);
     if ((state.currentWave + 1) % 3 === 0) {
       state.scoreMultiplier += 0.5;
     }
-    state.currentWave++;
-    if (state.currentWave < state.cfg.waves.length) {
-      showWaveIndicator(state.currentWave + 1);
+
+    // Clear remaining enemies (Brotato-style cleanup)
+    state.activeEnemies.length = 0;
+
+    // Final wave -> victory
+    if (state.currentWave >= state.cfg.waves.length - 1) {
+      showVictory();
+      return;
     }
-    loadWave();
+
+    // Open shop; on close, advance and start next wave
+    openShop(() => {
+      state.currentWave++;
+      showWaveIndicator(state.currentWave + 1);
+      loadWave();
+    });
   }
 }

@@ -22,7 +22,18 @@ export const state = {
   scoreMultiplier: 1,
   upgradesTaken: 0,
   // wave spawner
-  wave: {queue: [], spawnPerBurst: 8, cooldownMs: 300, nextAt: 0, clusterRadius: 60},
+  wave: {
+    queue: [],
+    types: [],
+    active: false,
+    spawnCap: 12,
+    spawnPerBurst: 8,
+    cooldownMs: 300,
+    nextAt: 0,
+    clusterRadius: 60,
+    durationMs: 30000,
+    endAt: 0
+  },
   // runtime/lifecycle
   running: false,
   isVisible: true,

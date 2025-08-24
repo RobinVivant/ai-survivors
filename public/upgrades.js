@@ -186,7 +186,7 @@ function getWeaponUpgradeDescription(weaponName, level) {
   return descriptions[weaponName]?.[level - 2] || 'Max level reached.';
 }
 
-function applyUpgrade(upg) {
+export function applyUpgrade(upg) {
   const {type, value} = upg.effect || {};
   switch (type) {
     case 'upgrade_weapon': {

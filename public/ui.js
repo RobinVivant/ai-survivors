@@ -19,9 +19,13 @@ export function updateUI() {
   if (state.uiLastUpdate && now - state.uiLastUpdate < 100) return;
   state.uiLastUpdate = now;
 
+  const timeLeftMs = state.wave?.active ? Math.max(0, state.wave.endAt - performance.now()) : 0;
+  const secsLeft = Math.ceil(timeLeftMs / 1000);
+
   const nextUpgradeKills = state.nextUpgradeAt - state.kills;
   state.dom.uiDiv.innerHTML = `
     <div>Wave: ${state.currentWave + 1} / ${state.cfg.waves.length}</div>
+    ${state.wave?.active ? `<div>Time Left: ${secsLeft}s</div>` : ''}
     <div>Score: ${state.score} ${state.scoreMultiplier > 1 ? `(x${state.scoreMultiplier})` : ''}</div>
     <div>Coins: ${state.coins}</div>
     <div>Kills: ${state.kills} ${nextUpgradeKills > 0 ? `(${nextUpgradeKills} to LvlUp)` : ''}</div>
