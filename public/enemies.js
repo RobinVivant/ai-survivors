@@ -98,6 +98,7 @@ export function moveEnemies(deltaTime) {
           e.y += (dy / dist) * moveSpeed;
         } else {
           const orbitAngle = Math.atan2(dy, dx) + 0.02;
+          //Unused constant moveSpeed ai!
           const moveSpeed = e.speed * timeMultiplier;
           e.x = state.player.x + Math.cos(orbitAngle) * orbitRadius;
           e.y = state.player.y + Math.sin(orbitAngle) * orbitRadius;
