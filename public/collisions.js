@@ -20,6 +20,52 @@ function computeCoinDrop(e) {
   return Math.max(1, Math.round(base));
 }
 
+function spawnPickups(amount, x, y) {
+  const denoms = [
+    {type: 'diamond', value: 10, color: '#66e0ff', size: 6},
+    {type: 'lingo',   value: 5,  color: '#ff66cc', size: 5},
+    {type: 'coin',    value: 1,  color: '#ffdd55', size: 4},
+  ];
+  let remaining = Math.max(1, Math.floor(amount));
+  const items = [];
+  for (const d of denoms) {
+    while (remaining >= d.value && items.length < 20) {
+      items.push(d);
+      remaining -= d.value;
+    }
+  }
+  if (!items.length) items.push(denoms[2]);
+  items.forEach(d => {
+    const ang = Math.random() * Math.PI * 2;
+    const spd = Math.random() * 2 + 1;
+    state.pickups.push({
+      x, y,
+      vx: Math.cos(ang) * spd,
+      vy: Math.sin(ang) * spd,
+      size: d.size,
+      type: d.type,
+      color: d.color,
+      value: d.value,
+      spawnAt: Date.now(),
+      expireAt: Date.now() + 15000
+    });
+  });
+}
+  const hpComponent = (e.maxHp || e.hp || 10) / 20;
+  const speedComponent = (e.speed || 1) * 0.4;
+  const projectileBonus = e.projectile ? 2 : 0;
+  let abilityBonus = 0;
+  switch (e.specialAbility) {
+    case 'shield': abilityBonus = 2; break;
+    case 'rage': abilityBonus = 1.5; break;
+    case 'teleport': abilityBonus = 2; break;
+    case 'split': abilityBonus = 1.5; break;
+  }
+  const behaviorBonus = (e.behavior === 'kamikaze' || e.behavior === 'sniper') ? 1 : 0;
+  const base = hpComponent + speedComponent + projectileBonus + abilityBonus + behaviorBonus;
+  return Math.max(1, Math.round(base));
+}
+
 export function handleCollisions() {
   const CELL = 64;
   const enemyHash = buildSpatialHash(state.activeEnemies, CELL);
@@ -152,7 +198,7 @@ export function cleanupEntities() {
       const points = (enemy.points || 1) * state.scoreMultiplier;
       state.score += Math.floor(points);
       const coinDrop = computeCoinDrop(enemy);
-      state.coins += coinDrop;
+      spawnPickups(coinDrop, enemy.x, enemy.y);
       createParticles(enemy.x, enemy.y, '#ffdd55', 10, 'coin');
       state.kills++;
       createParticles(enemy.x, enemy.y, enemy.color, 12, 'explosion');

@@ -45,6 +45,7 @@ export const state = {
   activeEnemies: [],
   bullets: [],
   particles: [],
+  pickups: [],
   cameraShake: {x: 0, y: 0, intensity: 0, duration: 0},
   stars: [],
 

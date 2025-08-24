@@ -67,6 +67,38 @@ export function draw() {
   });
   state.dom.ctx.restore();
 
+  // Pickups
+  state.dom.ctx.save();
+  state.dom.ctx.globalCompositeOperation = 'lighter';
+  state.pickups.forEach(pu => {
+    state.dom.ctx.save();
+    const t = (Date.now() * 0.005 + pu.x + pu.y) % (Math.PI * 2);
+    const pulse = 1 + Math.sin(t) * 0.1;
+    const r = pu.size * pulse;
+    state.dom.ctx.shadowBlur = 12;
+    state.dom.ctx.shadowColor = pu.color;
+    state.dom.ctx.fillStyle = pu.color;
+    state.dom.ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    state.dom.ctx.lineWidth = 1;
+    if (pu.type === 'diamond') {
+      state.dom.ctx.beginPath();
+      state.dom.ctx.moveTo(pu.x, pu.y - r);
+      state.dom.ctx.lineTo(pu.x + r, pu.y);
+      state.dom.ctx.lineTo(pu.x, pu.y + r);
+      state.dom.ctx.lineTo(pu.x - r, pu.y);
+      state.dom.ctx.closePath();
+      state.dom.ctx.fill();
+      state.dom.ctx.stroke();
+    } else {
+      state.dom.ctx.beginPath();
+      state.dom.ctx.arc(pu.x, pu.y, r, 0, Math.PI * 2);
+      state.dom.ctx.fill();
+      state.dom.ctx.stroke();
+    }
+    state.dom.ctx.restore();
+  });
+  state.dom.ctx.restore();
+
   const pulseIntensity = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
   state.dom.ctx.save();
   state.dom.ctx.shadowBlur = 20 * pulseIntensity;
