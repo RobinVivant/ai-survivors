@@ -239,3 +239,4 @@ export function cleanupEntities() {
       state.pickups.splice(i, 1);
     }
   }
+}
