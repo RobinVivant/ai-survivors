@@ -1,4 +1,4 @@
-import {getAIConfigFromOpenRouter} from './openrouter.js';
+import {DEFAULT_CONFIG} from './config.js';
 import {initStars, state} from './state.js';
 import {draw, loadWave, showGameOver, showWaveIndicator, update} from './systems.js';
 
@@ -174,7 +174,7 @@ async function init() {
   setupInput();
   initStars(200);
 
-  const cfg = await getAIConfigFromOpenRouter();
+  const cfg = DEFAULT_CONFIG;
   state.cfg.enemies = Array.isArray(cfg.enemies) ? cfg.enemies : [];
   state.cfg.weapons = Array.isArray(cfg.weapons) ? cfg.weapons : [];
   state.cfg.waves = Array.isArray(cfg.waves) ? cfg.waves : [];
