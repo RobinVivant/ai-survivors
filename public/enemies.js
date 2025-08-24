@@ -1,24 +1,39 @@
-import { state } from './state.js';
-import { createParticles, createTrailParticle } from './effects.js';
-import { playSound } from './audio.js';
+import {state} from './state.js';
+import {createParticles, createTrailParticle} from './effects.js';
+import {playSound} from './audio.js';
 
-export function createEnemyInstance(name){
-  const def = state.cfg.enemies.find(e=>e.name===name)||{name:'Unknown',color:'#fff',speed:1,hp:10,points:1};
-  
+export function createEnemyInstance(name) {
+  const def = state.cfg.enemies.find(e => e.name === name) || {
+    name: 'Unknown',
+    color: '#fff',
+    speed: 1,
+    hp: 10,
+    points: 1
+  };
+
   // Spawn enemies further from player to avoid instant collision
   let x, y;
   const minDistance = 100;
   let attempts = 0;
-  
+
   do {
     const edge = Math.floor(Math.random() * 4);
-    if(edge === 0) { x = Math.random() * window.innerWidth; y = -20; }
-    else if(edge === 1) { x = window.innerWidth + 20; y = Math.random() * window.innerHeight; }
-    else if(edge === 2) { x = Math.random() * window.innerWidth; y = window.innerHeight + 20; }
-    else { x = -20; y = Math.random() * window.innerHeight; }
+    if (edge === 0) {
+      x = Math.random() * window.innerWidth;
+      y = -20;
+    } else if (edge === 1) {
+      x = window.innerWidth + 20;
+      y = Math.random() * window.innerHeight;
+    } else if (edge === 2) {
+      x = Math.random() * window.innerWidth;
+      y = window.innerHeight + 20;
+    } else {
+      x = -20;
+      y = Math.random() * window.innerHeight;
+    }
     attempts++;
   } while (Math.hypot(x - state.player.x, y - state.player.y) < minDistance && attempts < 10);
-  
+
   const wave = Math.max(0, state.currentWave || 0);
   const hpScale = 1 + wave * 0.15;
   const speedScale = 1 + wave * 0.03;
@@ -39,16 +54,16 @@ export function createEnemyInstance(name){
   };
 }
 
-export function moveEnemies(deltaTime){
-  const timeMultiplier = deltaTime / 16.67; 
-  state.activeEnemies.forEach(e=>{
-    if(e.frozen && Date.now() > e.frozen){
+export function moveEnemies(deltaTime) {
+  const timeMultiplier = deltaTime / 16.67;
+  state.activeEnemies.forEach(e => {
+    if (e.frozen && Date.now() > e.frozen) {
       e.speed = e.originalSpeed || e.speed;
       delete e.frozen;
       delete e.originalSpeed;
     }
-    if(e.poisoned && Date.now() < e.poisoned){
-      if(!e.lastPoisonTick || Date.now() - e.lastPoisonTick > 500){
+    if (e.poisoned && Date.now() < e.poisoned) {
+      if (!e.lastPoisonTick || Date.now() - e.lastPoisonTick > 500) {
         e.hp -= e.poisonDmg || 1;
         e.lastPoisonTick = Date.now();
         createParticles(e.x, e.y, '#00ff00', 3, 'poison');
@@ -57,10 +72,10 @@ export function moveEnemies(deltaTime){
     const dx = state.player.x - e.x;
     const dy = state.player.y - e.y;
     const dist = Math.hypot(dx, dy);
-    switch(e.behavior){
+    switch (e.behavior) {
       case 'chase':
       default:
-        if(dist > 1){
+        if (dist > 1) {
           const randomOffset = Math.sin(Date.now() * 0.001 + e.x) * 0.2;
           const moveSpeed = e.speed * timeMultiplier;
           e.x += (dx / dist) * moveSpeed + randomOffset;
@@ -68,7 +83,7 @@ export function moveEnemies(deltaTime){
         }
         break;
       case 'zigzag':
-        if(dist > 1){
+        if (dist > 1) {
           const zigzag = Math.sin(Date.now() * 0.005 + e.x) * 2;
           const moveSpeed = e.speed * timeMultiplier;
           e.x += (dx / dist) * moveSpeed + zigzag;
@@ -77,7 +92,7 @@ export function moveEnemies(deltaTime){
         break;
       case 'orbit':
         const orbitRadius = 150;
-        if(dist > orbitRadius){
+        if (dist > orbitRadius) {
           const moveSpeed = e.speed * timeMultiplier;
           e.x += (dx / dist) * moveSpeed;
           e.y += (dy / dist) * moveSpeed;
@@ -89,8 +104,8 @@ export function moveEnemies(deltaTime){
         }
         break;
       case 'teleport':
-        if(!e.lastTeleport || Date.now() - e.lastTeleport > 3000){
-          if(Math.random() < 0.01){
+        if (!e.lastTeleport || Date.now() - e.lastTeleport > 3000) {
+          if (Math.random() < 0.01) {
             createParticles(e.x, e.y, e.color, 8, 'teleport');
             e.x = state.player.x + (Math.random() - 0.5) * 200;
             e.y = state.player.y + (Math.random() - 0.5) * 200;
@@ -100,7 +115,7 @@ export function moveEnemies(deltaTime){
             e.lastTeleport = Date.now();
           }
         }
-        if(dist > 1){
+        if (dist > 1) {
           const moveSpeed = e.speed * timeMultiplier;
           e.x += (dx / dist) * moveSpeed;
           e.y += (dy / dist) * moveSpeed;
@@ -108,30 +123,30 @@ export function moveEnemies(deltaTime){
         break;
       case 'sniper':
         const sniperDist = 200;
-        if(dist < sniperDist - 10){
+        if (dist < sniperDist - 10) {
           const moveSpeed = e.speed * timeMultiplier;
           e.x -= (dx / dist) * moveSpeed;
           e.y -= (dy / dist) * moveSpeed;
-        } else if(dist > sniperDist + 10){
+        } else if (dist > sniperDist + 10) {
           const moveSpeed = e.speed * timeMultiplier;
           e.x += (dx / dist) * moveSpeed;
           e.y += (dy / dist) * moveSpeed;
         }
         break;
       case 'kamikaze':
-        if(dist > 1){
-          const speedBoost = Math.max(1, 3 - dist/100);
+        if (dist > 1) {
+          const speedBoost = Math.max(1, 3 - dist / 100);
           const moveSpeed = e.speed * speedBoost * timeMultiplier;
           e.x += (dx / dist) * moveSpeed;
           e.y += (dy / dist) * moveSpeed;
-          if(speedBoost > 1.5){
+          if (speedBoost > 1.5) {
             createTrailParticle(e.x, e.y, e.color);
           }
         }
         break;
     }
 
-    if(e.projectile && (!e.lastShot || Date.now() - e.lastShot > 2000)){
+    if (e.projectile && (!e.lastShot || Date.now() - e.lastShot > 2000)) {
       const angle = Math.atan2(dy, dx);
       state.bullets.push({
         x: e.x,
@@ -149,11 +164,11 @@ export function moveEnemies(deltaTime){
       playSound('shoot');
     }
 
-    if(e.specialAbility === 'shield' && !e.shieldActive){
+    if (e.specialAbility === 'shield' && !e.shieldActive) {
       e.shieldActive = true;
       e.shieldHp = 10;
     }
-    if(e.specialAbility === 'rage' && e.hp < e.maxHp/3 && !e.enraged){
+    if (e.specialAbility === 'rage' && e.hp < e.maxHp / 3 && !e.enraged) {
       e.enraged = true;
       e.speed *= 2;
       e.damage = (e.damage || 1) * 2;

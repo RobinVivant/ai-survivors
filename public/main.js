@@ -1,6 +1,6 @@
-import { getAIConfigFromOpenRouter } from './openrouter.js';
-import { state, initStars } from './state.js';
-import { update, draw, loadWave, showGameOver, showWaveIndicator } from './systems.js';
+import {getAIConfigFromOpenRouter} from './openrouter.js';
+import {initStars, state} from './state.js';
+import {draw, loadWave, showGameOver, showWaveIndicator, update} from './systems.js';
 
 function resizeCanvas() {
   if (!state.dom.canvas || !state.dom.ctx) return;
@@ -161,10 +161,10 @@ async function init() {
     maxHp: 50,
     weapons: state.cfg.weapons.length ? [0] : [],
     lastShotMap: {},
-    velocity: { x: 0, y: 0 },
+    velocity: {x: 0, y: 0},
     acceleration: 0.3,
     friction: 0.85,
-    dash: { ready: true, duration: 200, cooldown: 1000, lastUsed: 0 },
+    dash: {ready: true, duration: 200, cooldown: 1000, lastUsed: 0},
   };
 
   state.loading = false;

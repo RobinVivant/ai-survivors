@@ -22,7 +22,7 @@ export const state = {
   scoreMultiplier: 1,
   upgradesTaken: 0,
   // wave spawner
-  wave: { queue: [], spawnPerBurst: 8, cooldownMs: 300, nextAt: 0, clusterRadius: 60 },
+  wave: {queue: [], spawnPerBurst: 8, cooldownMs: 300, nextAt: 0, clusterRadius: 60},
   // runtime/lifecycle
   running: false,
   isVisible: true,
@@ -34,7 +34,7 @@ export const state = {
   activeEnemies: [],
   bullets: [],
   particles: [],
-  cameraShake: { x: 0, y: 0, intensity: 0, duration: 0 },
+  cameraShake: {x: 0, y: 0, intensity: 0, duration: 0},
   stars: [],
 
   // environment
@@ -51,7 +51,7 @@ export const state = {
 };
 
 export function initStars(count = 200) {
-  state.stars = Array.from({ length: count }, () => ({
+  state.stars = Array.from({length: count}, () => ({
     x: Math.random() * window.innerWidth,
     y: Math.random() * window.innerHeight,
     size: Math.random() * 2 + 0.5,

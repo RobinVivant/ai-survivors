@@ -133,30 +133,235 @@ export async function getAIConfigFromOpenRouter() {
     // Enhanced fallback config with cyberpunk theme
     return {
       enemies: [
-        { name: "DataMite", color: "#8aff00", speed: 1.8, hp: 8,  size: 6,  damage: 1, points: 4,  behavior: "chase" },
-        { name: "VirusSwarm", color: "#ff00e1", speed: 2.2, hp: 7,  size: 5,  damage: 1, points: 4,  behavior: "zigzag" },
-        { name: "GlitchCrawler", color: "#00fff2", speed: 1.6, hp: 14, size: 8,  damage: 2, points: 8,  behavior: "zigzag" },
-        { name: "FirewallGolem", color: "#ffa200", speed: 0.9, hp: 35, size: 14, damage: 3, points: 18, behavior: "chase", specialAbility: "shield" },
-        { name: "NeuralHacker", color: "#00d4ff", speed: 1.1, hp: 22, size: 10, damage: 2, points: 12, behavior: "orbit", projectile: true },
-        { name: "QuantumWraith", color: "#a466ff", speed: 2.7, hp: 18, size: 9,  damage: 2, points: 14, behavior: "chase", specialAbility: "teleport" },
-        { name: "SentinelSniper", color: "#ff4070", speed: 1.2, hp: 40, size: 12, damage: 3, points: 20, behavior: "sniper", projectile: true },
-        { name: "OverclockedBrute", color: "#ff2a2a", speed: 1.3, hp: 55, size: 15, damage: 4, points: 28, behavior: "chase", specialAbility: "rage" },
-        { name: "FractalSwarm", color: "#66ff99", speed: 1.7, hp: 16, size: 9,  damage: 2, points: 10, behavior: "orbit", splittable: true },
-        { name: "GhostKernel", color: "#66ccff", speed: 2.4, hp: 24, size: 10, damage: 3, points: 18, behavior: "kamikaze" },
-        { name: "AIOverlord", color: "#ff2222", speed: 1.0, hp: 120,size: 20, damage: 6, points: 60, behavior: "orbit", projectile: true, specialAbility: "split" },
-        { name: "KernelTyrant", color: "#ff5599", speed: 1.1, hp: 180,size: 22, damage: 8, points: 80, behavior: "orbit", projectile: true, specialAbility: "shield" }
+        {name: "DataMite", color: "#8aff00", speed: 1.8, hp: 8, size: 6, damage: 1, points: 4, behavior: "chase"},
+        {name: "VirusSwarm", color: "#ff00e1", speed: 2.2, hp: 7, size: 5, damage: 1, points: 4, behavior: "zigzag"},
+        {
+          name: "GlitchCrawler",
+          color: "#00fff2",
+          speed: 1.6,
+          hp: 14,
+          size: 8,
+          damage: 2,
+          points: 8,
+          behavior: "zigzag"
+        },
+        {
+          name: "FirewallGolem",
+          color: "#ffa200",
+          speed: 0.9,
+          hp: 35,
+          size: 14,
+          damage: 3,
+          points: 18,
+          behavior: "chase",
+          specialAbility: "shield"
+        },
+        {
+          name: "NeuralHacker",
+          color: "#00d4ff",
+          speed: 1.1,
+          hp: 22,
+          size: 10,
+          damage: 2,
+          points: 12,
+          behavior: "orbit",
+          projectile: true
+        },
+        {
+          name: "QuantumWraith",
+          color: "#a466ff",
+          speed: 2.7,
+          hp: 18,
+          size: 9,
+          damage: 2,
+          points: 14,
+          behavior: "chase",
+          specialAbility: "teleport"
+        },
+        {
+          name: "SentinelSniper",
+          color: "#ff4070",
+          speed: 1.2,
+          hp: 40,
+          size: 12,
+          damage: 3,
+          points: 20,
+          behavior: "sniper",
+          projectile: true
+        },
+        {
+          name: "OverclockedBrute",
+          color: "#ff2a2a",
+          speed: 1.3,
+          hp: 55,
+          size: 15,
+          damage: 4,
+          points: 28,
+          behavior: "chase",
+          specialAbility: "rage"
+        },
+        {
+          name: "FractalSwarm",
+          color: "#66ff99",
+          speed: 1.7,
+          hp: 16,
+          size: 9,
+          damage: 2,
+          points: 10,
+          behavior: "orbit",
+          splittable: true
+        },
+        {
+          name: "GhostKernel",
+          color: "#66ccff",
+          speed: 2.4,
+          hp: 24,
+          size: 10,
+          damage: 3,
+          points: 18,
+          behavior: "kamikaze"
+        },
+        {
+          name: "AIOverlord",
+          color: "#ff2222",
+          speed: 1.0,
+          hp: 120,
+          size: 20,
+          damage: 6,
+          points: 60,
+          behavior: "orbit",
+          projectile: true,
+          specialAbility: "split"
+        },
+        {
+          name: "KernelTyrant",
+          color: "#ff5599",
+          speed: 1.1,
+          hp: 180,
+          size: 22,
+          damage: 8,
+          points: 80,
+          behavior: "orbit",
+          projectile: true,
+          specialAbility: "shield"
+        }
       ],
       weapons: [
-        { name: "Machine Gun",   dmg: 5, fireRate: 7,  bulletSpeed: 9, bulletSize: 2, bulletColor: "#00ffff", price: 0,   description: "High RPM all-rounder", spread: 0.08 },
-        { name: "Shotgun",       dmg: 3, fireRate: 1.3,bulletSpeed: 7, bulletSize: 3, bulletColor: "#ffcc66", price: 120, description: "Close-range burst", splitShot: 6, spread: 0.25, range: 1 },
-        { name: "Rocket Launcher", dmg: 12, fireRate: 1.1, bulletSpeed: 4.5, bulletSize: 5, bulletColor: "#ffaa33", price: 220, description: "Explosive payload", explosive: 50 },
-        { name: "Railgun",       dmg: 9, fireRate: 1.8,bulletSpeed: 13, bulletSize: 3, bulletColor: "#b3e5ff", price: 250, description: "Sharp piercing beam", piercing: 4 },
-        { name: "ChainLightning",dmg: 5, fireRate: 1.6,bulletSpeed: 12, bulletSize: 2, bulletColor: "#7f7fff", price: 260, description: "Arcs between targets", chain: 4 },
-        { name: "Cryo Ray",      dmg: 4, fireRate: 2.0,bulletSpeed: 8, bulletSize: 3, bulletColor: "#66ccff", price: 180, description: "Freezes systems", freeze: 1600 },
-        { name: "Plasma Repeater", dmg: 6, fireRate: 3.5, bulletSpeed: 8, bulletSize: 3, bulletColor: "#ff66aa", price: 200, description: "Fast, relentless fire", piercing: 1, spread: 0.06 },
-        { name: "Homing Missiles", dmg: 6, fireRate: 1.9, bulletSpeed: 6, bulletSize: 3, bulletColor: "#00ff99", price: 280, description: "Seeks targets", homing: 0.12, explosive: 28 },
-        { name: "Quantum Bouncer", dmg: 7, fireRate: 2.2, bulletSpeed: 8, bulletSize: 3, bulletColor: "#ff99cc", price: 240, description: "Ricocheting rounds", bounces: 3 },
-        { name: "Laser Storm",   dmg: 3, fireRate: 6.5,bulletSpeed: 10, bulletSize: 2, bulletColor: "#ffff66", price: 230, description: "Shredding light", splitShot: 2, spread: 0.12 }
+        {
+          name: "Machine Gun",
+          dmg: 5,
+          fireRate: 7,
+          bulletSpeed: 9,
+          bulletSize: 2,
+          bulletColor: "#00ffff",
+          price: 0,
+          description: "High RPM all-rounder",
+          spread: 0.08
+        },
+        {
+          name: "Shotgun",
+          dmg: 3,
+          fireRate: 1.3,
+          bulletSpeed: 7,
+          bulletSize: 3,
+          bulletColor: "#ffcc66",
+          price: 120,
+          description: "Close-range burst",
+          splitShot: 6,
+          spread: 0.25,
+          range: 1
+        },
+        {
+          name: "Rocket Launcher",
+          dmg: 12,
+          fireRate: 1.1,
+          bulletSpeed: 4.5,
+          bulletSize: 5,
+          bulletColor: "#ffaa33",
+          price: 220,
+          description: "Explosive payload",
+          explosive: 50
+        },
+        {
+          name: "Railgun",
+          dmg: 9,
+          fireRate: 1.8,
+          bulletSpeed: 13,
+          bulletSize: 3,
+          bulletColor: "#b3e5ff",
+          price: 250,
+          description: "Sharp piercing beam",
+          piercing: 4
+        },
+        {
+          name: "ChainLightning",
+          dmg: 5,
+          fireRate: 1.6,
+          bulletSpeed: 12,
+          bulletSize: 2,
+          bulletColor: "#7f7fff",
+          price: 260,
+          description: "Arcs between targets",
+          chain: 4
+        },
+        {
+          name: "Cryo Ray",
+          dmg: 4,
+          fireRate: 2.0,
+          bulletSpeed: 8,
+          bulletSize: 3,
+          bulletColor: "#66ccff",
+          price: 180,
+          description: "Freezes systems",
+          freeze: 1600
+        },
+        {
+          name: "Plasma Repeater",
+          dmg: 6,
+          fireRate: 3.5,
+          bulletSpeed: 8,
+          bulletSize: 3,
+          bulletColor: "#ff66aa",
+          price: 200,
+          description: "Fast, relentless fire",
+          piercing: 1,
+          spread: 0.06
+        },
+        {
+          name: "Homing Missiles",
+          dmg: 6,
+          fireRate: 1.9,
+          bulletSpeed: 6,
+          bulletSize: 3,
+          bulletColor: "#00ff99",
+          price: 280,
+          description: "Seeks targets",
+          homing: 0.12,
+          explosive: 28
+        },
+        {
+          name: "Quantum Bouncer",
+          dmg: 7,
+          fireRate: 2.2,
+          bulletSpeed: 8,
+          bulletSize: 3,
+          bulletColor: "#ff99cc",
+          price: 240,
+          description: "Ricocheting rounds",
+          bounces: 3
+        },
+        {
+          name: "Laser Storm",
+          dmg: 3,
+          fireRate: 6.5,
+          bulletSpeed: 10,
+          bulletSize: 2,
+          bulletColor: "#ffff66",
+          price: 230,
+          description: "Shredding light",
+          splitShot: 2,
+          spread: 0.12
+        }
       ],
       waves: [
         // Early game: 16–22 spawns
@@ -182,27 +387,122 @@ export async function getAIConfigFromOpenRouter() {
         [...Array(22).fill("QuantumWraith"), "KernelTyrant"]
       ],
       upgrades: [
-        { name: "Neural Overclock",   effect: {type: "speed", value: 0.6},     description: "Boost movement speed",      rarity: "rare" },
-        { name: "Quantum Shield",     effect: {type: "maxhealth", value: 15},   description: "Increase max health",       rarity: "rare" },
-        { name: "Data Surge",         effect: {type: "damage", value: 2},       description: "All weapons +2 damage",     rarity: "rare" },
-        { name: "Rapid Fire Protocol",effect: {type: "firerate", value: 0.5},   description: "Increase fire rate",        rarity: "epic" },
-        { name: "Velocity Matrix",    effect: {type: "bulletspeed", value: 1.5},description: "Faster projectiles",        rarity: "common" },
-        { name: "Piercing Matrix",    effect: {type: "piercing", value: 1},     description: "Bullets pierce +1 enemy",   rarity: "rare" },
-        { name: "Homing Algorithm",   effect: {type: "homing", value: 0.08},    description: "Slight bullet homing",      rarity: "epic" },
-        { name: "Explosive Rounds",   effect: {type: "explosive", value: 25},   description: "Add explosion damage",      rarity: "epic" },
-        { name: "Quantum Regeneration",effect:{type: "health", value: 20},      description: "Instant health restore",    rarity: "rare" },
-        { name: "Overcharge Protocol",effect:{type: "damage", value: 3},        description: "All weapons +3 damage",     rarity: "legendary" },
-        { name: "Time Dilation",      effect: {type: "firerate", value: 1},     description: "Major fire rate boost",     rarity: "legendary" },
+        {
+          name: "Neural Overclock",
+          effect: {type: "speed", value: 0.6},
+          description: "Boost movement speed",
+          rarity: "rare"
+        },
+        {
+          name: "Quantum Shield",
+          effect: {type: "maxhealth", value: 15},
+          description: "Increase max health",
+          rarity: "rare"
+        },
+        {name: "Data Surge", effect: {type: "damage", value: 2}, description: "All weapons +2 damage", rarity: "rare"},
+        {
+          name: "Rapid Fire Protocol",
+          effect: {type: "firerate", value: 0.5},
+          description: "Increase fire rate",
+          rarity: "epic"
+        },
+        {
+          name: "Velocity Matrix",
+          effect: {type: "bulletspeed", value: 1.5},
+          description: "Faster projectiles",
+          rarity: "common"
+        },
+        {
+          name: "Piercing Matrix",
+          effect: {type: "piercing", value: 1},
+          description: "Bullets pierce +1 enemy",
+          rarity: "rare"
+        },
+        {
+          name: "Homing Algorithm",
+          effect: {type: "homing", value: 0.08},
+          description: "Slight bullet homing",
+          rarity: "epic"
+        },
+        {
+          name: "Explosive Rounds",
+          effect: {type: "explosive", value: 25},
+          description: "Add explosion damage",
+          rarity: "epic"
+        },
+        {
+          name: "Quantum Regeneration",
+          effect: {type: "health", value: 20},
+          description: "Instant health restore",
+          rarity: "rare"
+        },
+        {
+          name: "Overcharge Protocol",
+          effect: {type: "damage", value: 3},
+          description: "All weapons +3 damage",
+          rarity: "legendary"
+        },
+        {
+          name: "Time Dilation",
+          effect: {type: "firerate", value: 1},
+          description: "Major fire rate boost",
+          rarity: "legendary"
+        },
         // Weapon grants
-        { name: "Purchase: Shotgun",          effect: {type: "weapon", value: "Shotgun"},          description: "Close-range burst",    rarity: "epic" },
-        { name: "Purchase: Rocket Launcher",  effect: {type: "weapon", value: "Rocket Launcher"},  description: "Explosive payload",     rarity: "epic" },
-        { name: "Purchase: Railgun",          effect: {type: "weapon", value: "Railgun"},          description: "Piercing rail shot",    rarity: "rare" },
-        { name: "Purchase: ChainLightning",   effect: {type: "weapon", value: "ChainLightning"},   description: "Jumps between targets", rarity: "epic" },
-        { name: "Purchase: Cryo Ray",         effect: {type: "weapon", value: "Cryo Ray"},         description: "Freezes systems",       rarity: "rare" },
-        { name: "Purchase: Plasma Repeater",  effect: {type: "weapon", value: "Plasma Repeater"},  description: "Fast, relentless fire", rarity: "rare" },
-        { name: "Purchase: Homing Missiles",  effect: {type: "weapon", value: "Homing Missiles"},  description: "Seeks targets",         rarity: "epic" },
-        { name: "Purchase: Quantum Bouncer",  effect: {type: "weapon", value: "Quantum Bouncer"},  description: "Ricocheting rounds",    rarity: "epic" },
-        { name: "Purchase: Laser Storm",      effect: {type: "weapon", value: "Laser Storm"},      description: "Shredding light",       rarity: "rare" }
+        {
+          name: "Purchase: Shotgun",
+          effect: {type: "weapon", value: "Shotgun"},
+          description: "Close-range burst",
+          rarity: "epic"
+        },
+        {
+          name: "Purchase: Rocket Launcher",
+          effect: {type: "weapon", value: "Rocket Launcher"},
+          description: "Explosive payload",
+          rarity: "epic"
+        },
+        {
+          name: "Purchase: Railgun",
+          effect: {type: "weapon", value: "Railgun"},
+          description: "Piercing rail shot",
+          rarity: "rare"
+        },
+        {
+          name: "Purchase: ChainLightning",
+          effect: {type: "weapon", value: "ChainLightning"},
+          description: "Jumps between targets",
+          rarity: "epic"
+        },
+        {
+          name: "Purchase: Cryo Ray",
+          effect: {type: "weapon", value: "Cryo Ray"},
+          description: "Freezes systems",
+          rarity: "rare"
+        },
+        {
+          name: "Purchase: Plasma Repeater",
+          effect: {type: "weapon", value: "Plasma Repeater"},
+          description: "Fast, relentless fire",
+          rarity: "rare"
+        },
+        {
+          name: "Purchase: Homing Missiles",
+          effect: {type: "weapon", value: "Homing Missiles"},
+          description: "Seeks targets",
+          rarity: "epic"
+        },
+        {
+          name: "Purchase: Quantum Bouncer",
+          effect: {type: "weapon", value: "Quantum Bouncer"},
+          description: "Ricocheting rounds",
+          rarity: "epic"
+        },
+        {
+          name: "Purchase: Laser Storm",
+          effect: {type: "weapon", value: "Laser Storm"},
+          description: "Shredding light",
+          rarity: "rare"
+        }
       ],
       background: "#0a0420"
     };

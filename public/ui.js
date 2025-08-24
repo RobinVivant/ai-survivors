@@ -1,5 +1,5 @@
-import { state } from './state.js';
-import { createParticles } from './effects.js';
+import {state} from './state.js';
+import {createParticles} from './effects.js';
 
 export function showWaveIndicator(waveNum) {
   state.dom.waveIndicator.textContent = `WAVE ${waveNum}`;
@@ -47,10 +47,10 @@ export function showVictory() {
   for (let i = 0; i < 50; i++) {
     setTimeout(() => {
       createParticles(
-        Math.random() * window.innerWidth, 
-        Math.random() * window.innerHeight, 
-        `hsl(${Math.random() * 360}, 70%, 60%)`, 
-        8, 
+        Math.random() * window.innerWidth,
+        Math.random() * window.innerHeight,
+        `hsl(${Math.random() * 360}, 70%, 60%)`,
+        8,
         'explosion'
       );
     }, i * 100);

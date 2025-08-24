@@ -1,8 +1,8 @@
-import { state } from './state.js';
-import { createParticles } from './effects.js';
-import { playSound } from './audio.js';
+import {state} from './state.js';
+import {createParticles} from './effects.js';
+import {playSound} from './audio.js';
 
-export function checkForUpgrade(){
+export function checkForUpgrade() {
   if (state.kills >= state.nextUpgradeAt) {
     const upgradesSoFar = state.upgradesTaken || 0;
     const base = 18;
@@ -30,7 +30,7 @@ function presentUpgradeChoices() {
         name: `Upgrade ${weaponToUpgrade.name} (Lvl ${currentLevel + 1})`,
         description: getWeaponUpgradeDescription(weaponToUpgrade.name, currentLevel + 1),
         rarity: currentLevel >= 3 ? 'epic' : 'rare',
-        effect: { type: 'upgrade_weapon', value: weaponToUpgrade.name }
+        effect: {type: 'upgrade_weapon', value: weaponToUpgrade.name}
       });
     }
   }
@@ -42,20 +42,55 @@ function presentUpgradeChoices() {
       name: `New Weapon: ${weaponToAdd.name}`,
       description: `Adds the ${weaponToAdd.name} to your arsenal.`,
       rarity: 'epic',
-      effect: { type: 'weapon', value: weaponToAdd.name }
+      effect: {type: 'weapon', value: weaponToAdd.name}
     });
   }
 
   const passives = [
-    { name: "Hyper Speed", effect: { type: "speed", value: 0.6 }, description: "Greatly increase movement speed.", rarity: "rare" },
-    { name: "Full Heal", effect: { type: "health", value: state.player.maxHp }, description: "Restore all health.", rarity: "common" },
-    { name: "Damage Core", effect: { type: "damage", value: 3 }, description: "+3 damage to all weapons.", rarity: "epic" },
-    { name: "Overdrive", effect: { type: "firerate", value: 0.5 }, description: "Massively increase fire rate.", rarity: "epic" },
-    { name: "Titanium Hull", effect: { type: "maxhealth", value: 15 }, description: "+15 max health.", rarity: "rare" },
-    { name: "Bullet Velocity", effect: { type: "bulletspeed", value: 1.5 }, description: "Bullets travel much faster.", rarity: "common" },
-    { name: "Piercing Matrix", effect: { type: "piercing", value: 1 }, description: "Bullets pierce +1 enemy.", rarity: "rare" },
-    { name: "Homing Algorithm", effect: { type: "homing", value: 0.08 }, description: "Smoother bullet homing.", rarity: "epic" },
-    { name: "Explosive Rounds", effect: { type: "explosive", value: 25 }, description: "Add explosion damage.", rarity: "epic" },
+    {
+      name: "Hyper Speed",
+      effect: {type: "speed", value: 0.6},
+      description: "Greatly increase movement speed.",
+      rarity: "rare"
+    },
+    {
+      name: "Full Heal",
+      effect: {type: "health", value: state.player.maxHp},
+      description: "Restore all health.",
+      rarity: "common"
+    },
+    {name: "Damage Core", effect: {type: "damage", value: 3}, description: "+3 damage to all weapons.", rarity: "epic"},
+    {
+      name: "Overdrive",
+      effect: {type: "firerate", value: 0.5},
+      description: "Massively increase fire rate.",
+      rarity: "epic"
+    },
+    {name: "Titanium Hull", effect: {type: "maxhealth", value: 15}, description: "+15 max health.", rarity: "rare"},
+    {
+      name: "Bullet Velocity",
+      effect: {type: "bulletspeed", value: 1.5},
+      description: "Bullets travel much faster.",
+      rarity: "common"
+    },
+    {
+      name: "Piercing Matrix",
+      effect: {type: "piercing", value: 1},
+      description: "Bullets pierce +1 enemy.",
+      rarity: "rare"
+    },
+    {
+      name: "Homing Algorithm",
+      effect: {type: "homing", value: 0.08},
+      description: "Smoother bullet homing.",
+      rarity: "epic"
+    },
+    {
+      name: "Explosive Rounds",
+      effect: {type: "explosive", value: 25},
+      description: "Add explosion damage.",
+      rarity: "epic"
+    },
     ...aiPassivePool
   ];
 
@@ -66,7 +101,7 @@ function presentUpgradeChoices() {
         name: `New Weapon: ${fallbackW.name}`,
         description: `Adds the ${fallbackW.name} to your arsenal.`,
         rarity: 'epic',
-        effect: { type: 'weapon', value: fallbackW.name }
+        effect: {type: 'weapon', value: fallbackW.name}
       });
     }
   }
@@ -152,7 +187,7 @@ function getWeaponUpgradeDescription(weaponName, level) {
 }
 
 function applyUpgrade(upg) {
-  const { type, value } = upg.effect || {};
+  const {type, value} = upg.effect || {};
   switch (type) {
     case 'upgrade_weapon': {
       const weaponToUpgrade = state.cfg.weapons.find(w => w.name === value);
@@ -169,13 +204,19 @@ function applyUpgrade(upg) {
             if (weaponToUpgrade.level === 2) weaponToUpgrade.splitShot = (weaponToUpgrade.splitShot || 4) + 2;
             if (weaponToUpgrade.level === 3) weaponToUpgrade.range *= 1.5;
             if (weaponToUpgrade.level === 4) weaponToUpgrade.bounces = 1;
-            if (weaponToUpgrade.level === 5) { weaponToUpgrade.dmg *= 2; weaponToUpgrade.range *= 0.5; }
+            if (weaponToUpgrade.level === 5) {
+              weaponToUpgrade.dmg *= 2;
+              weaponToUpgrade.range *= 0.5;
+            }
             break;
           case 'Rocket Launcher':
             if (weaponToUpgrade.level === 2) weaponToUpgrade.explosive *= 1.5;
             if (weaponToUpgrade.level === 3) weaponToUpgrade.bulletSpeed *= 1.5;
             if (weaponToUpgrade.level === 4) weaponToUpgrade.homing = 0.1;
-            if (weaponToUpgrade.level === 5) { weaponToUpgrade.splitShot = 4; weaponToUpgrade.dmg *= 0.5; }
+            if (weaponToUpgrade.level === 5) {
+              weaponToUpgrade.splitShot = 4;
+              weaponToUpgrade.dmg *= 0.5;
+            }
             break;
         }
         if (!['Machine Gun', 'Shotgun', 'Rocket Launcher'].includes(weaponToUpgrade.name)) {
@@ -210,13 +251,19 @@ function applyUpgrade(upg) {
       break;
     }
     case 'damage':
-      state.player.weapons.forEach(wi => { state.cfg.weapons[wi].dmg = (state.cfg.weapons[wi].dmg || 1) + value; });
+      state.player.weapons.forEach(wi => {
+        state.cfg.weapons[wi].dmg = (state.cfg.weapons[wi].dmg || 1) + value;
+      });
       break;
     case 'firerate':
-      state.player.weapons.forEach(wi => { state.cfg.weapons[wi].fireRate = (state.cfg.weapons[wi].fireRate || 1) + value; });
+      state.player.weapons.forEach(wi => {
+        state.cfg.weapons[wi].fireRate = (state.cfg.weapons[wi].fireRate || 1) + value;
+      });
       break;
     case 'bulletspeed':
-      state.player.weapons.forEach(wi => { state.cfg.weapons[wi].bulletSpeed = (state.cfg.weapons[wi].bulletSpeed || 4) + value; });
+      state.player.weapons.forEach(wi => {
+        state.cfg.weapons[wi].bulletSpeed = (state.cfg.weapons[wi].bulletSpeed || 4) + value;
+      });
       break;
     case 'health':
       state.player.hp = Math.min(state.player.maxHp, state.player.hp + value);

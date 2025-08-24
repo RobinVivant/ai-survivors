@@ -1,6 +1,6 @@
-import { state } from './state.js';
+import {state} from './state.js';
 
-export function draw(){
+export function draw() {
   state.dom.ctx.save();
   state.dom.ctx.translate(state.cameraShake.x, state.cameraShake.y);
   state.dom.ctx.globalCompositeOperation = 'source-over';
@@ -86,13 +86,13 @@ export function draw(){
     if (timeSinceSpawn < 1000) {
       state.dom.ctx.globalAlpha = 0.5 + 0.5 * Math.sin(timeSinceSpawn * 0.01);
     }
-    if(e.frozen){
+    if (e.frozen) {
       state.dom.ctx.shadowBlur = 15;
       state.dom.ctx.shadowColor = '#66ccff';
-    } else if(e.poisoned){
+    } else if (e.poisoned) {
       state.dom.ctx.shadowBlur = 15;
       state.dom.ctx.shadowColor = '#00ff00';
-    } else if(e.enraged){
+    } else if (e.enraged) {
       state.dom.ctx.shadowBlur = 20;
       state.dom.ctx.shadowColor = '#ff0000';
     } else {
@@ -107,14 +107,14 @@ export function draw(){
     state.dom.ctx.fill();
     state.dom.ctx.stroke();
 
-    if(e.shieldActive && e.shieldHp > 0){
+    if (e.shieldActive && e.shieldHp > 0) {
       state.dom.ctx.strokeStyle = 'rgba(100,200,255,0.6)';
       state.dom.ctx.lineWidth = 2;
       state.dom.ctx.beginPath();
       state.dom.ctx.arc(e.x, e.y, e.size + 5, 0, Math.PI * 2);
       state.dom.ctx.stroke();
     }
-    if(e.frozen){
+    if (e.frozen) {
       state.dom.ctx.fillStyle = 'rgba(150,200,255,0.3)';
       state.dom.ctx.beginPath();
       state.dom.ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
@@ -125,20 +125,28 @@ export function draw(){
       const barWidth = e.size * 3;
       const barHeight = 3;
       state.dom.ctx.fillStyle = 'rgba(255,0,0,0.7)';
-      state.dom.ctx.fillRect(e.x - barWidth/2, e.y - e.size - 8, barWidth, barHeight);
+      state.dom.ctx.fillRect(e.x - barWidth / 2, e.y - e.size - 8, barWidth, barHeight);
       state.dom.ctx.fillStyle = e.poisoned ? 'rgba(150,255,0,0.9)' : 'rgba(0,255,0,0.9)';
-      state.dom.ctx.fillRect(e.x - barWidth/2, e.y - e.size - 8, barWidth * healthPercent, barHeight);
+      state.dom.ctx.fillRect(e.x - barWidth / 2, e.y - e.size - 8, barWidth * healthPercent, barHeight);
     }
-    if(e.specialAbility && !e.hasSplit && !e.enraged){
+    if (e.specialAbility && !e.hasSplit && !e.enraged) {
       state.dom.ctx.fillStyle = 'rgba(255,255,255,0.8)';
       state.dom.ctx.font = '8px Orbitron';
       state.dom.ctx.textAlign = 'center';
       let icon = '';
-      switch(e.specialAbility){
-        case 'shield': icon = '◈'; break;
-        case 'rage': icon = '!'; break;
-        case 'teleport': icon = '⚡'; break;
-        case 'split': icon = '✂'; break;
+      switch (e.specialAbility) {
+        case 'shield':
+          icon = '◈';
+          break;
+        case 'rage':
+          icon = '!';
+          break;
+        case 'teleport':
+          icon = '⚡';
+          break;
+        case 'split':
+          icon = '✂';
+          break;
       }
       state.dom.ctx.fillText(icon, e.x, e.y - e.size - 12);
     }
@@ -164,7 +172,7 @@ export function draw(){
     state.dom.ctx.fillStyle = '#fff';
     state.dom.ctx.font = '10px Orbitron';
     state.dom.ctx.textAlign = 'center';
-    state.dom.ctx.fillText(w.name || `W${index+1}`, barX + barWidth / 2, weaponBarY - 8);
+    state.dom.ctx.fillText(w.name || `W${index + 1}`, barX + barWidth / 2, weaponBarY - 8);
   });
 
   if (state.player.invulnerable && Date.now() < state.player.invulnerable) {

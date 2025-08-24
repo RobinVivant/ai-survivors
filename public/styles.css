@@ -2,329 +2,369 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
 html, body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background: #000;
-  color: #fff;
-  font-family: 'Orbitron', monospace;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+    font-family: 'Orbitron', monospace;
 }
 
 #game-wrapper {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
+    position: relative;
+    width: 100vw;
+    height: 100vh;
 }
 
 #gameCanvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: #000;
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #000;
 }
 
 #ui-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  padding: 20px;
-  box-sizing: border-box;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
 }
 
 #ui, .health-bar {
-  background: rgba(17, 0, 51, 0.6);
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 255, 255, 0.3);
-  backdrop-filter: blur(8px);
-  text-shadow: 0 0 8px #00ffff;
-  font-weight: 700;
-  transition: all 0.3s ease;
-  pointer-events: auto;
+    background: rgba(17, 0, 51, 0.6);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    backdrop-filter: blur(8px);
+    text-shadow: 0 0 8px #00ffff;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    pointer-events: auto;
 }
 
 #ui {
-  font-size: 16px;
-  color: #00ffff;
+    font-size: 16px;
+    color: #00ffff;
 }
 
 #upgradeOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at center, rgba(17, 0, 34, 0.9), rgba(0, 0, 0, 0.95));
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 25px;
-  color: #fff;
-  backdrop-filter: blur(12px);
-  border: 2px solid rgba(0, 255, 255, 0.2);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(17, 0, 34, 0.9), rgba(0, 0, 0, 0.95));
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    color: #fff;
+    backdrop-filter: blur(12px);
+    border: 2px solid rgba(0, 255, 255, 0.2);
 }
 
 .upgrade-btn {
-  padding: 15px 30px;
-  border: 2px solid;
-  background: linear-gradient(45deg, #1a0d33, #2d1b69);
-  color: #fff;
-  cursor: pointer;
-  font-size: 18px;
-  font-family: 'Orbitron', monospace;
-  font-weight: 700;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-  position: relative;
-  overflow: hidden;
-  width: 350px;
-  text-align: left;
+    padding: 15px 30px;
+    border: 2px solid;
+    background: linear-gradient(45deg, #1a0d33, #2d1b69);
+    color: #fff;
+    cursor: pointer;
+    font-size: 18px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    width: 350px;
+    text-align: left;
 }
 
 .upgrade-btn:hover {
-  background: linear-gradient(45deg, #2d1b69, #4a3299);
-  box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
-  transform: translateY(-3px) scale(1.02);
+    background: linear-gradient(45deg, #2d1b69, #4a3299);
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+    transform: translateY(-3px) scale(1.02);
 }
 
 .upgrade-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -150%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-  transition: left 0.6s ease;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    transition: left 0.6s ease;
 }
 
 .upgrade-btn:hover::before {
-  left: 150%;
+    left: 150%;
 }
 
 .health-bar {
-  width: 220px;
-  height: 20px;
-  overflow: hidden;
+    width: 220px;
+    height: 20px;
+    overflow: hidden;
 }
 
 .health-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #ff3333, #ffff66, #66ff66);
-  transition: width 0.3s ease;
-  border-radius: 6px;
-  box-shadow: 0 0 15px rgba(102, 255, 102, 0.6);
+    height: 100%;
+    background: linear-gradient(90deg, #ff3333, #ffff66, #66ff66);
+    transition: width 0.3s ease;
+    border-radius: 6px;
+    box-shadow: 0 0 15px rgba(102, 255, 102, 0.6);
 }
 
 .wave-indicator {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 52px;
-  font-weight: 900;
-  color: #00ffff;
-  text-shadow: 0 0 25px #00ffff, 0 0 40px #00ffff;
-  opacity: 0;
-  transition: opacity 0.5s ease, transform 0.5s ease;
-  pointer-events: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 52px;
+    font-weight: 900;
+    color: #00ffff;
+    text-shadow: 0 0 25px #00ffff, 0 0 40px #00ffff;
+    opacity: 0;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
 }
+
 :root {
-  --accent: #00ffff;
-  --accent-2: #ff2ea6;
-  --success: #33ff99;
-  --danger: #ff3355;
-  --hud-bg: rgba(10, 16, 30, 0.45);
-  --hud-border: rgba(0, 255, 255, 0.2);
-  --card-bg: rgba(8, 12, 24, 0.66);
-  --card-border: rgba(0, 255, 255, 0.25);
-  --text: #e6f3ff;
-  --muted: #96a6b6;
+    --accent: #00ffff;
+    --accent-2: #ff2ea6;
+    --success: #33ff99;
+    --danger: #ff3355;
+    --hud-bg: rgba(10, 16, 30, 0.45);
+    --hud-border: rgba(0, 255, 255, 0.2);
+    --card-bg: rgba(8, 12, 24, 0.66);
+    --card-border: rgba(0, 255, 255, 0.25);
+    --text: #e6f3ff;
+    --muted: #96a6b6;
 }
 
 html, body {
-  color: var(--text);
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
-  background: #05050a;
+    color: var(--text);
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+    background: #05050a;
 }
 
 #game-wrapper::before,
 #game-wrapper::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
 }
+
 #game-wrapper::before {
-  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(0,0,0,0.35) 100%);
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.35) 100%);
 }
+
 #game-wrapper::after {
-  background: repeating-linear-gradient(to bottom,
-    rgba(255,255,255,0.025) 0px,
-    rgba(255,255,255,0.025) 1px,
-    rgba(0,0,0,0) 2px,
-    rgba(0,0,0,0) 4px
-  );
-  mix-blend-mode: overlay;
+    background: repeating-linear-gradient(to bottom,
+    rgba(255, 255, 255, 0.025) 0px,
+    rgba(255, 255, 255, 0.025) 1px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0) 4px
+    );
+    mix-blend-mode: overlay;
 }
 
 #ui-container {
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: auto;
-  gap: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    gap: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 #ui {
-  padding: 10px 14px;
-  background: var(--hud-bg);
-  border: 1px solid var(--hud-border);
-  border-radius: 12px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  font-size: 14px;
-  color: var(--text);
-  letter-spacing: 0.2px;
+    padding: 10px 14px;
+    background: var(--hud-bg);
+    border: 1px solid var(--hud-border);
+    border-radius: 12px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    font-size: 14px;
+    color: var(--text);
+    letter-spacing: 0.2px;
 }
 
 /* Health bar polish */
 .health-bar {
-  width: clamp(200px, 40vw, 340px);
-  height: 12px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 999px;
-  overflow: hidden;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+    width: clamp(200px, 40vw, 340px);
+    height: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
+
 #healthFill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #ff4d6d, #ff2ea6);
-  box-shadow: 0 0 16px rgba(255, 46, 166, 0.35);
-  transition: width 180ms ease;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff4d6d, #ff2ea6);
+    box-shadow: 0 0 16px rgba(255, 46, 166, 0.35);
+    transition: width 180ms ease;
 }
 
 /* Wave indicator refinement */
 .wave-indicator {
-  font-family: Orbitron, monospace;
-  font-size: clamp(28px, 5vw, 56px);
-  letter-spacing: 4px;
-  text-shadow: 0 0 18px rgba(0,255,255,0.45);
-  transform: translate(-50%, -50%) scale(0.5);
-  transition: opacity 800ms ease, transform 600ms cubic-bezier(.2,.8,.2,1);
+    font-family: Orbitron, monospace;
+    font-size: clamp(28px, 5vw, 56px);
+    letter-spacing: 4px;
+    text-shadow: 0 0 18px rgba(0, 255, 255, 0.45);
+    transform: translate(-50%, -50%) scale(0.5);
+    transition: opacity 800ms ease, transform 600ms cubic-bezier(.2, .8, .2, 1);
 }
 
 /* Overlay shell */
 #upgradeOverlay {
-  padding: 24px;
-  background: radial-gradient(1200px 800px at 50% 50%, rgba(0, 255, 255, 0.06), rgba(0, 0, 0, 0.65) 60%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+    padding: 24px;
+    background: radial-gradient(1200px 800px at 50% 50%, rgba(0, 255, 255, 0.06), rgba(0, 0, 0, 0.65) 60%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 /* Overlay card + typography */
 .overlay-card {
-  width: min(720px, 92vw);
-  padding: 28px;
-  border-radius: 16px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,0.06) inset,
+    width: min(720px, 92vw);
+    padding: 28px;
+    border-radius: 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset,
     0 20px 60px rgba(0, 0, 0, 0.6),
-    0 0 32px rgba(0,255,255,0.12);
+    0 0 32px rgba(0, 255, 255, 0.12);
 }
+
 .overlay-title {
-  margin: 0 0 6px 0;
-  font-family: Orbitron, monospace;
-  letter-spacing: 2px;
-  font-size: 32px;
-  color: var(--accent);
-  text-shadow: 0 0 18px rgba(0,255,255,0.4);
-  text-align: center;
+    margin: 0 0 6px 0;
+    font-family: Orbitron, monospace;
+    letter-spacing: 2px;
+    font-size: 32px;
+    color: var(--accent);
+    text-shadow: 0 0 18px rgba(0, 255, 255, 0.4);
+    text-align: center;
 }
+
 .overlay-subtitle {
-  margin: 0 0 12px 0;
-  text-align: center;
-  color: var(--muted);
+    margin: 0 0 12px 0;
+    text-align: center;
+    color: var(--muted);
 }
+
 .overlay-hint {
-  margin: 6px 0;
-  text-align: center;
-  color: var(--muted);
-  font-size: 13px;
+    margin: 6px 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
 }
+
 .overlay-tiny {
-  margin-top: 2px;
-  text-align: center;
-  color: rgba(255,255,255,0.6);
-  font-size: 11px;
+    margin-top: 2px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
 }
 
 /* Upgrade buttons */
 .upgrade-btn {
-  width: 100%;
-  text-align: left;
-  margin: 10px 0;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.14);
-  background: linear-gradient(135deg, rgba(12, 24, 38, 0.9), rgba(14, 12, 28, 0.9));
-  color: var(--text);
-  cursor: pointer;
-  transition: transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+    width: 100%;
+    text-align: left;
+    margin: 10px 0;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: linear-gradient(135deg, rgba(12, 24, 38, 0.9), rgba(14, 12, 28, 0.9));
+    color: var(--text);
+    cursor: pointer;
+    transition: transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
+
 .upgrade-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 26px rgba(0,0,0,0.45), 0 0 24px rgba(0,255,255,0.15);
-  border-color: rgba(0,255,255,0.35);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45), 0 0 24px rgba(0, 255, 255, 0.15);
+    border-color: rgba(0, 255, 255, 0.35);
 }
+
 .upgrade-btn:active {
-  transform: translateY(0);
+    transform: translateY(0);
 }
-.upgrade-btn .upgrade-head { display: flex; align-items: center; justify-content: space-between; }
-.upgrade-btn .upgrade-name { font-size: 18px; }
-.upgrade-btn .upgrade-desc { margin-top: 6px; font-size: 13px; color: var(--muted); }
-.upgrade-btn .upgrade-rarity { font-size: 11px; letter-spacing: 1px; opacity: 0.8; text-transform: uppercase; }
+
+.upgrade-btn .upgrade-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.upgrade-btn .upgrade-name {
+    font-size: 18px;
+}
+
+.upgrade-btn .upgrade-desc {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.upgrade-btn .upgrade-rarity {
+    font-size: 11px;
+    letter-spacing: 1px;
+    opacity: 0.8;
+    text-transform: uppercase;
+}
 
 /* Rarity colors */
-.upgrade-btn[data-rarity="common"] .upgrade-name { color: #e8f4ff; }
-.upgrade-btn[data-rarity="rare"] .upgrade-name { color: #33bbff; }
-.upgrade-btn[data-rarity="epic"] .upgrade-name { color: #cc66ff; }
-.upgrade-btn[data-rarity="legendary"] .upgrade-name { color: #ffcc55; }
+.upgrade-btn[data-rarity="common"] .upgrade-name {
+    color: #e8f4ff;
+}
+
+.upgrade-btn[data-rarity="rare"] .upgrade-name {
+    color: #33bbff;
+}
+
+.upgrade-btn[data-rarity="epic"] .upgrade-name {
+    color: #cc66ff;
+}
+
+.upgrade-btn[data-rarity="legendary"] .upgrade-name {
+    color: #ffcc55;
+}
 
 /* Primary action button (Play Again / Retry) */
 .upgrade-btn.primary {
-  text-align: center;
-  font-family: Orbitron, monospace;
-  font-size: 16px;
-  letter-spacing: 1px;
-  background: linear-gradient(45deg, #0b2b1a, #114d2d);
-  border-color: rgba(51,255,153,0.35);
-  box-shadow: 0 0 28px rgba(51,255,153,0.2);
+    text-align: center;
+    font-family: Orbitron, monospace;
+    font-size: 16px;
+    letter-spacing: 1px;
+    background: linear-gradient(45deg, #0b2b1a, #114d2d);
+    border-color: rgba(51, 255, 153, 0.35);
+    box-shadow: 0 0 28px rgba(51, 255, 153, 0.2);
 }
+
 .upgrade-btn.primary:hover {
-  box-shadow: 0 10px 26px rgba(0,0,0,0.45), 0 0 32px rgba(51,255,153,0.35);
-  transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45), 0 0 32px rgba(51, 255, 153, 0.35);
+    transform: translateY(-1px);
 }

@@ -1,4 +1,4 @@
-import { state } from './state.js';
+import {state} from './state.js';
 
 export function playSound(type, frequency = 440, duration = 0.1, volume = 0.1) {
   if (!state.audioContext) return;
@@ -8,7 +8,7 @@ export function playSound(type, frequency = 440, duration = 0.1, volume = 0.1) {
     oscillator.connect(gainNode);
     gainNode.connect(state.audioContext.destination);
 
-    switch(type) {
+    switch (type) {
       case 'shoot':
         oscillator.frequency.setValueAtTime(800, state.audioContext.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(400, state.audioContext.currentTime + 0.05);
