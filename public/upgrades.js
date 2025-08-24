@@ -110,6 +110,30 @@ function presentUpgradeChoices() {
       rarity: "common"
     },
     {
+      name: "Vampiric Core",
+      effect: {type: "onkill_heal", value: 2},
+      description: "Heal 2 HP on kill.",
+      rarity: "rare"
+    },
+    {
+      name: "Nanite Regeneration",
+      effect: {type: "regen", value: 1.5},
+      description: "Regenerate 1.5 HP per second.",
+      rarity: "epic"
+    },
+    {
+      name: "Coin Multiplier",
+      effect: {type: "coin_gain", value: 0.25},
+      description: "Gain 25% more coins from kills.",
+      rarity: "rare"
+    },
+    {
+      name: "Super Magnet",
+      effect: {type: "magnet", value: 80},
+      description: "Greatly increase coin pickup radius.",
+      rarity: "epic"
+    },
+    {
       name: "Piercing Matrix",
       effect: {type: "piercing", value: 1},
       description: "Bullets pierce +1 enemy.",
@@ -349,6 +373,15 @@ export function applyUpgrade(upg) {
         const w = state.cfg.weapons[wi];
         w.explosive = (w.explosive || 0) + value;
       });
+      break;
+    case 'coin_gain':
+      state.player.coinGainMult = (state.player.coinGainMult || 1) * (1 + value);
+      break;
+    case 'onkill_heal':
+      state.player.onKillHeal = (state.player.onKillHeal || 0) + value;
+      break;
+    case 'regen':
+      state.player.regenPerSec = (state.player.regenPerSec || 0) + value;
       break;
     default:
       break;

@@ -103,6 +103,10 @@ export function maybeNextWave() {
       return;
     }
 
+    // Between-wave heal
+    const waveHeal = Math.max(5, Math.floor(state.player.maxHp * 0.12));
+    state.player.hp = Math.min(state.player.maxHp, state.player.hp + waveHeal);
+
     // Open shop; on close, advance and start next wave
     openShop(() => {
       state.currentWave++;

@@ -42,7 +42,7 @@ function spawnPickups(amount, x, y) {
       color: d.color,
       value: d.value,
       spawnAt: Date.now(),
-      expireAt: Date.now() + 15000
+      expireAt: Date.now() + 20000
     });
   });
 }
@@ -204,10 +204,13 @@ export function cleanupEntities() {
       const enemy = state.activeEnemies[i];
       const points = (enemy.points || 1) * state.scoreMultiplier;
       state.score += Math.floor(points);
-      const coinDrop = computeCoinDrop(enemy);
+      const coinDrop = Math.ceil(computeCoinDrop(enemy) * (state.player.coinGainMult || 1));
       spawnPickups(coinDrop, enemy.x, enemy.y);
       createParticles(enemy.x, enemy.y, '#ffdd55', 10, 'coin');
       state.kills++;
+      if (state.player.onKillHeal) {
+        state.player.hp = Math.min(state.player.maxHp, state.player.hp + state.player.onKillHeal);
+      }
       createParticles(enemy.x, enemy.y, enemy.color, 12, 'explosion');
 
       if (Math.random() < 0.05) {

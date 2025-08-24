@@ -110,7 +110,9 @@ export function handleShooting(ts) {
       bounces: w.bounces || 0,
       bounceCount: 0,
       splitShot: w.splitShot || 0,
-      target: null
+      target: null,
+      travel: 0,
+      maxDist,
     };
 
     state.bullets.push(bullet);

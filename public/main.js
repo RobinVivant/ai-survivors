@@ -174,21 +174,25 @@ async function init() {
   state.player = {
     x: window.innerWidth / 2,
     y: window.innerHeight / 2,
-    baseSpeed: 3,
-    speed: 3,
+    baseSpeed: 3.6,
+    speed: 3.6,
     size: 14,
-    hp: 50,
-    maxHp: 50,
+    hp: 60,
+    maxHp: 60,
     weapons: state.cfg.weapons.length ? [0] : [],
     lastShotMap: {},
     velocity: {x: 0, y: 0},
     acceleration: 0.3,
     friction: 0.85,
-    dash: {ready: true, duration: 200, cooldown: 1000, lastUsed: 0, speed: 15, damage: 0, damageRadius: 24, startedAt: 0, activeUntil: 0},
-    bulletRange: 700,         // px
+    dash: {ready: true, duration: 240, cooldown: 800, lastUsed: 0, speed: 18, damage: 4, damageRadius: 26, startedAt: 0, activeUntil: 0},
+    bulletRange: 800,         // px
     bulletRangeMult: 1,       // global multiplier from upgrades
-    coinMagnetRadius: 120,    // px
-    coinCollectRadius: 24,    // px
+    coinMagnetRadius: 140,    // px
+    coinCollectRadius: 28,    // px
+    regenPerSec: 1.5,
+    lastRegenAt: 0,
+    coinGainMult: 1,
+    onKillHeal: 0,
   };
 
   state.loading = false;

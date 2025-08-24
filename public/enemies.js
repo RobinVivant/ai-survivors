@@ -155,7 +155,7 @@ export function moveEnemies(deltaTime) {
         break;
       case 'kamikaze':
         if (dist > 1) {
-          const speedBoost = Math.max(1, 3 - dist / 100);
+          const speedBoost = 1 + Math.min(1.5, Math.max(0, (200 - dist) / 100));
           const moveSpeed = e.speed * speedBoost * timeMultiplier;
           e.x += (dx / dist) * moveSpeed;
           e.y += (dy / dist) * moveSpeed;
@@ -166,7 +166,7 @@ export function moveEnemies(deltaTime) {
         break;
     }
 
-    if (e.projectile && (!e.lastShot || Date.now() - e.lastShot > 2000)) {
+    if (e.projectile && (!e.lastShot || Date.now() - e.lastShot > 2400)) {
       const angle = Math.atan2(dy, dx);
       state.bullets.push({
         x: e.x,

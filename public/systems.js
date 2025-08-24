@@ -14,6 +14,15 @@ function update(ts, deltaTime) {
   moveEnemies(deltaTime);
   moveBullets(deltaTime);
   handleCollisions();
+  // Passive health regen (1 tick/sec)
+  if (state.player?.regenPerSec > 0 && state.player.hp > 0 && state.player.hp < state.player.maxHp) {
+    const now = performance.now();
+    if (!state.player.lastRegenAt) state.player.lastRegenAt = now;
+    if (now - state.player.lastRegenAt >= 1000) {
+      state.player.hp = Math.min(state.player.maxHp, state.player.hp + state.player.regenPerSec);
+      state.player.lastRegenAt = now;
+    }
+  }
   cleanupEntities();
   updateParticles(deltaTime);
   updateCameraShake();
