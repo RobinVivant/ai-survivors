@@ -1,6 +1,5 @@
 import {state} from './state.js';
 
-//Unused parameter volume  ai!
 export function playSound(type, frequency = 440, duration = 0.1, volume = 0.1) {
   if (!state.audioContext) return;
   try {
@@ -9,58 +8,72 @@ export function playSound(type, frequency = 440, duration = 0.1, volume = 0.1) {
     oscillator.connect(gainNode);
     gainNode.connect(state.audioContext.destination);
 
+    const ct = state.audioContext.currentTime;
+    const volScale = Math.min(2, Math.max(0, volume ?? 0.1) / 0.1);
+
     switch (type) {
       case 'shoot':
-        oscillator.frequency.setValueAtTime(800, state.audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(400, state.audioContext.currentTime + 0.05);
-        gainNode.gain.setValueAtTime(0.05, state.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, state.audioContext.currentTime + 0.05);
+        oscillator.frequency.setValueAtTime(800, ct);
+        oscillator.frequency.exponentialRampToValueAtTime(400, ct + 0.05);
+        gainNode.gain.setValueAtTime(0.05 * volScale, ct);
+        gainNode.gain.exponentialRampToValueAtTime(0.01 * volScale, ct + 0.05);
         oscillator.type = 'square';
         duration = 0.05;
         break;
       case 'dash':
-        oscillator.frequency.setValueAtTime(300, state.audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(600, state.audioContext.currentTime + 0.1);
-        gainNode.gain.setValueAtTime(0.08, state.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, state.audioContext.currentTime + 0.1);
+        oscillator.frequency.setValueAtTime(300, ct);
+        oscillator.frequency.exponentialRampToValueAtTime(600, ct + 0.1);
+        gainNode.gain.setValueAtTime(0.08 * volScale, ct);
+        gainNode.gain.exponentialRampToValueAtTime(0.01 * volScale, ct + 0.1);
         oscillator.type = 'square';
         duration = 0.1;
         break;
       case 'hit':
-        oscillator.frequency.setValueAtTime(200, state.audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(100, state.audioContext.currentTime + 0.1);
-        gainNode.gain.setValueAtTime(0.1, state.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, state.audioContext.currentTime + 0.1);
+        oscillator.frequency.setValueAtTime(200, ct);
+        oscillator.frequency.exponentialRampToValueAtTime(100, ct + 0.1);
+        gainNode.gain.setValueAtTime(0.1 * volScale, ct);
+        gainNode.gain.exponentialRampToValueAtTime(0.01 * volScale, ct + 0.1);
         oscillator.type = 'sawtooth';
         duration = 0.1;
         break;
       case 'death':
-        oscillator.frequency.setValueAtTime(150, state.audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(50, state.audioContext.currentTime + 0.3);
-        gainNode.gain.setValueAtTime(0.15, state.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, state.audioContext.currentTime + 0.3);
+        oscillator.frequency.setValueAtTime(150, ct);
+        oscillator.frequency.exponentialRampToValueAtTime(50, ct + 0.3);
+        gainNode.gain.setValueAtTime(0.15 * volScale, ct);
+        gainNode.gain.exponentialRampToValueAtTime(0.01 * volScale, ct + 0.3);
         oscillator.type = 'sawtooth';
         duration = 0.3;
         break;
       case 'damage':
-        oscillator.frequency.setValueAtTime(100, state.audioContext.currentTime);
-        gainNode.gain.setValueAtTime(0.2, state.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, state.audioContext.currentTime + 0.2);
+        oscillator.frequency.setValueAtTime(100, ct);
+        gainNode.gain.setValueAtTime(0.2 * volScale, ct);
+        gainNode.gain.exponentialRampToValueAtTime(0.01 * volScale, ct + 0.2);
         oscillator.type = 'triangle';
         duration = 0.2;
         break;
       case 'upgrade':
-        oscillator.frequency.setValueAtTime(400, state.audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(800, state.audioContext.currentTime + 0.2);
-        gainNode.gain.setValueAtTime(0.1, state.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, state.audioContext.currentTime + 0.2);
+        oscillator.frequency.setValueAtTime(400, ct);
+        oscillator.frequency.exponentialRampToValueAtTime(800, ct + 0.2);
+        gainNode.gain.setValueAtTime(0.1 * volScale, ct);
+        gainNode.gain.exponentialRampToValueAtTime(0.01 * volScale, ct + 0.2);
         oscillator.type = 'sine';
         duration = 0.2;
         break;
+      default:
+        oscillator.frequency.setValueAtTime(frequency, ct);
+        gainNode.gain.setValueAtTime(0.1 * volScale, ct);
+        oscillator.type = 'sine';
+        break;
     }
 
-    oscillator.start(state.audioContext.currentTime);
-    oscillator.stop(state.audioContext.currentTime + duration);
+    oscillator.start(ct);
+    oscillator.stop(ct + duration);
+    oscillator.onended = () => {
+      try {
+        oscillator.disconnect();
+        gainNode.disconnect();
+      } catch {}
+    };
   } catch (e) {
     console.log('Sound playback failed:', e);
   }
