@@ -167,17 +167,65 @@ dist/                  # Build outputs
 - Physics: public/physics.js toggles and synchronizes AVBD world; AVBD parameters in PHYS_CFG.
 - Renderer: public/renderer.js controls glow, particles, HUD polish.
 
-## Physics Notes (AVBD/PBD)
+## Physics Notes (AVBD/PBD) 🧪
 
-- public/avbd2d.js implements:
-  - Vec2, Particle, constraints (Distance, Pin, HalfSpace, CircleContact)
-  - SpatialHash for broadphase
-  - AVBDSolver with iterations, substeps, gravity, compliance
-- public/physics.js builds a World from player/enemies each frame as needed and pushes positions/velocities both ways.
+Overview
+- Tiny position-based dynamics solver with XPBD-style compliance for stable circle contacts.
+- AVBD runs separation; collisions.js handles damage, bullets, pickups, etc.
 
-Tuning:
-- Adjust iterations, substeps, collisionCompliance, and cellSize in PHYS_CFG.
-- Mass scales with size^2 (pseudo area). Player/enemy separation and clamping are coordinated with collisions.js.
+Files and roles
+- public/avbd2d.js: Vec2, Particle, SpatialHash, constraints (Distance, Pin, HalfSpace, CircleContact), AVBDSolver.
+- public/physics.js: Bridges state ↔ physics world each frame and clamps positions to screen.
+- public/collisions.js: Damage and effects; when AVBD is enabled, it skips its own enemy–enemy pushout.
+
+Pipeline (per solver step)
+1) applyForces: v += dt * (f * invM + gravity)
+2) predictPositions: xp = x + v * dt
+3) buildBroadPhase: SpatialHash fills 3×3 neighbor cells
+4) projectConstraints:
+   - Static constraints (if any) + dynamic CircleContact constraints generated from broadphase
+   - Iterate this.iterations times; XPBD compliance used for stability
+5) updateVelocities: v = (xp − x) / dt; then x = xp
+6) clearForces
+
+Units and time
+- dt is seconds. The solver’s advance() accumulates real time and integrates in fixed 1/60s steps (max 8 per frame).
+- Game velocities are maintained in px/frame; public/physics.js scales to px/s (×60) when syncing into the world.
+
+Mass and inverse mass
+- massFromSize(s) ≈ s² · 0.2 (pseudo-area). invM = 0 pins a particle (pinned=true).
+- Constraints distribute corrections using inverse masses (w = invM) so heavier objects move less.
+
+Contacts and compliance
+- CircleContact keeps centers at least r_i + r_j apart.
+- collisionCompliance in PHYS_CFG controls softness:
+  - 0 → rigid contacts (crisp separation)
+  - Small >0 (e.g., 1e-6 … 1e-4) → slight give, helps reduce jitter in dense piles
+- Lambda caching (per-constraint impulses) improves convergence across iterations.
+
+Broadphase
+- Spatial hash cellSize defaults to 64px. Set near the average circle diameter for fewer false positives.
+- Neighbors checked in a 3×3 cell window.
+
+Integration with gameplay
+- With AVBD enabled, enemies don’t get extra pushout from collisions.js; the solver handles separation.
+- Player contact damage still uses proximity checks in collisions.js (with a small epsilon when AVBD is on).
+- Bullet hits, shields, explosions, and all damage accounting remain in collisions.js.
+
+Boundaries
+- We clamp positions to the screen after each physics update (simple and robust for UI-sized worlds).
+- HalfSpaceConstraint exists for walls/ground if you ever want physically enforced borders.
+
+Tuning (public/physics.js → PHYS_CFG)
+- iterations: 6–10 for crisp separation (default 8)
+- substeps: 1–2; increase if very fast objects tunnel
+- collisionCompliance: 0 for rigid; try 1e-6 … 5e-5 if jittering in dense crowds
+- cellSize: ~2× average radius (default 64)
+- Performance scales with (constraints + contacts) × iterations per step; broadphase keeps contact pairs manageable.
+
+Disabling AVBD (debug/fallback)
+- In DevTools: state.physics.enabled = false; or temporarily comment out updatePhysics(...) in public/systems.js.
+- When disabled, collisions.js applies its legacy overlap resolution for enemies.
 
 ## Troubleshooting
 
