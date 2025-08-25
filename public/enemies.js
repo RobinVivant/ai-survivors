@@ -167,48 +167,37 @@ export function moveEnemies(deltaTime) {
         case 'chase':
         default:
           if (dist > 1) {
-            const randomOffset = Math.sin(Date.now() * 0.001 + e.x) * 0.2;
             const moveSpeed = e.speed * timeMultiplier;
-            const separated = !!(flock && (flock.neighbors < 2 || flock.toCenterLen > flock.sepDist * 1.2));
-
-            if (separated && flock) {
-              // Group up first
-              e.x += flock.coh.x * moveSpeed + randomOffset;
-              e.y += flock.coh.y * moveSpeed + randomOffset;
-              // small separation to avoid hard clumps
-              e.x += (flock.sep?.x || 0) * moveSpeed * 0.3;
-              e.y += (flock.sep?.y || 0) * moveSpeed * 0.3;
-            } else {
-              // Chase, with flocking as a steering term
-              e.x += (dx / dist) * moveSpeed + randomOffset;
-              e.y += (dy / dist) * moveSpeed + randomOffset;
-              if (flock) {
-                const gain = (e.flockGain ?? 0.6) * e.speed * timeMultiplier;
-                e.x += flock.dir.x * gain;
-                e.y += flock.dir.y * gain;
-              }
+            const toP = { x: dx / dist, y: dy / dist };
+            const grp = flock ? flock.coh : { x: 0, y: 0 };
+            let vx = toP.x * 0.5 + grp.x * 0.5;
+            let vy = toP.y * 0.5 + grp.y * 0.5;
+            const len = Math.hypot(vx, vy) || 1;
+            vx /= len; vy /= len;
+            const randomOffset = Math.sin(Date.now() * 0.001 + e.x) * 0.2;
+            e.x += vx * moveSpeed + randomOffset;
+            e.y += vy * moveSpeed + randomOffset;
+            if (flock) {
+              e.x += (flock.sep?.x || 0) * moveSpeed * 0.25;
+              e.y += (flock.sep?.y || 0) * moveSpeed * 0.25;
             }
           }
           break;
         case 'zigzag':
           if (dist > 1) {
-            const zigzag = Math.sin(Date.now() * 0.005 + e.x) * 2;
             const moveSpeed = e.speed * timeMultiplier;
-            const separated = !!(flock && (flock.neighbors < 2 || flock.toCenterLen > flock.sepDist * 1.2));
-
-            if (separated && flock) {
-              e.x += flock.coh.x * moveSpeed + zigzag;
-              e.y += flock.coh.y * moveSpeed + zigzag;
+            const toP = { x: dx / dist, y: dy / dist };
+            const grp = flock ? flock.coh : { x: 0, y: 0 };
+            let vx = toP.x * 0.5 + grp.x * 0.5;
+            let vy = toP.y * 0.5 + grp.y * 0.5;
+            const len = Math.hypot(vx, vy) || 1;
+            vx /= len; vy /= len;
+            const zigzag = Math.sin(Date.now() * 0.005 + e.x) * 2;
+            e.x += vx * moveSpeed + zigzag;
+            e.y += vy * moveSpeed + zigzag;
+            if (flock) {
               e.x += (flock.sep?.x || 0) * moveSpeed * 0.25;
               e.y += (flock.sep?.y || 0) * moveSpeed * 0.25;
-            } else {
-              e.x += (dx / dist) * moveSpeed + zigzag;
-              e.y += (dy / dist) * moveSpeed + zigzag;
-              if (flock) {
-                const gain = (e.flockGain ?? 0.6) * e.speed * timeMultiplier;
-                e.x += flock.dir.x * gain;
-                e.y += flock.dir.y * gain;
-              }
             }
           }
           break;
@@ -256,21 +245,17 @@ export function moveEnemies(deltaTime) {
           if (dist > 1) {
             const speedBoost = 1 + Math.min(1.5, Math.max(0, (200 - dist) / 100));
             const moveSpeed = e.speed * speedBoost * timeMultiplier;
-            const separated = !!(flock && (flock.neighbors < 2 || flock.toCenterLen > flock.sepDist * 1.2));
-
-            if (separated && flock) {
-              e.x += flock.coh.x * moveSpeed;
-              e.y += flock.coh.y * moveSpeed;
-              e.x += (flock.sep?.x || 0) * moveSpeed * 0.25;
-              e.y += (flock.sep?.y || 0) * moveSpeed * 0.25;
-            } else {
-              e.x += (dx / dist) * moveSpeed;
-              e.y += (dy / dist) * moveSpeed;
-              if (flock) {
-                const gain = (e.flockGain ?? 0.6) * e.speed * speedBoost * timeMultiplier;
-                e.x += flock.dir.x * gain;
-                e.y += flock.dir.y * gain;
-              }
+            const toP = { x: dx / dist, y: dy / dist };
+            const grp = flock ? flock.coh : { x: 0, y: 0 };
+            let vx = toP.x * 0.5 + grp.x * 0.5;
+            let vy = toP.y * 0.5 + grp.y * 0.5;
+            const len = Math.hypot(vx, vy) || 1;
+            vx /= len; vy /= len;
+            e.x += vx * moveSpeed;
+            e.y += vy * moveSpeed;
+            if (flock) {
+              e.x += (flock.sep?.x || 0) * moveSpeed * 0.2;
+              e.y += (flock.sep?.y || 0) * moveSpeed * 0.2;
             }
             if (speedBoost > 1.5) {
               createTrailParticle(e.x, e.y, e.color);
