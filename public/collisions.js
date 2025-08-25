@@ -165,6 +165,18 @@ export function handleCollisions() {
         p.y -= ny * moveP;
       }
 
+      // Cue-ball style bump: strong knockback on body hits even without contact-damage upgrade
+      {
+        const baseRam = p.contactDamageBase || 0;
+        const speed = Math.hypot(p.velocity.x || 0, p.velocity.y || 0);
+        if (baseRam <= 0 && speed > 2.2 && nowMs - (e._lastBumpImpulseAt || 0) >= 120) {
+          const sizeBoost = Math.max(0.9, (p.size || 1) / (p.baseSize || 22));
+          const kb = Math.min(40, 6 + speed * 2.4 * sizeBoost);
+          applyKnockback(e, p.x, p.y, kb, (p.size || 22) + 10);
+          e._lastBumpImpulseAt = nowMs;
+        }
+      }
+
       // Contact damage to player, rate-limited and scaled by enemy size/inertia
       const tick = 350; // ms between contact hits per enemy
       if ((!p.invulnerable || nowMs > p.invulnerable) && nowMs - (e._lastContactToPlayerAt || 0) >= tick) {
@@ -195,6 +207,11 @@ export function handleCollisions() {
         const speedScale = 0.8 + Math.min(0.7, Math.hypot(p.velocity.x || 0, p.velocity.y || 0) / 12);
         const ramDmg = Math.max(1, Math.round(baseRam * sizeScale * speedScale));
         e.hp -= ramDmg;
+        {
+          const spd = Math.hypot(p.velocity.x || 0, p.velocity.y || 0);
+          const knock = Math.min(42, 10 + spd * 3.0 * sizeScale);
+          applyKnockback(e, p.x, p.y, knock, (p.size || 22) + 12);
+        }
         createParticles(e.x, e.y, '#99ffcc', 5, 'hit');
         addCameraShake(1, 3);
         e._lastRamHitAt = nowMs;
@@ -211,7 +228,8 @@ export function handleCollisions() {
         if (e._dashHitAt !== state.player.dash.startedAt) {
           e._dashHitAt = state.player.dash.startedAt;
           e.hp -= state.player.dash.damage;
-          applyKnockback(e, state.player.x, state.player.y, 16, (state.player.dash.damageRadius || (state.player.size + 10)) + 8);
+          const kbMax = Math.min(44, 12 + (state.player.dash.speed || 18) * 1.4);
+          applyKnockback(e, state.player.x, state.player.y, kbMax, (state.player.dash.damageRadius || (state.player.size + 10)) + 8);
           createParticles(e.x, e.y, '#66ffff', 6, 'hit');
         }
       }
@@ -351,14 +369,14 @@ export function handleCollisions() {
           dst.hp -= dmg;
 
           // shove the target and propagate a weaker impact for possible short chains
-          const shove = Math.min(16, power * 0.6);
+          const shove = Math.min(28, power * 0.9);
           dst.vx = (dst.vx || 0) + (dx / dist) * shove;
           dst.vy = (dst.vy || 0) + (dy / dist) * shove;
-          dst._impactPower = Math.max(dst._impactPower || 0, power * 0.45);
-          dst._impactUntil = now + 140;
+          dst._impactPower = Math.max(dst._impactPower || 0, power * 0.6);
+          dst._impactUntil = now + 220;
 
-          // decay the source impact so it doesn’t hit infinitely
-          src._impactPower = power * 0.5;
+          // keep some momentum on the source so short chains are more likely
+          src._impactPower = power * 0.7;
           if (src._impactPower < 1) src._impactUntil = now;
 
           dst._lastHitFromEnemyAt = now;
