@@ -412,83 +412,6 @@ async function init() {
   setupInput();
   initStars(200);
 
-  function showOptionsMenu(fromMain = false) {
-    const root = state.dom.upgradeOverlay;
-    root.style.display = 'flex';
-    root.innerHTML = `
-      <div class="overlay-card">
-        <h2 class="overlay-title">OPTIONS</h2>
-        <div class="options-grid">
-          <div class="option-row">
-            <label>Master Volume</label>
-            <input id="volMaster" type="range" min="0" max="100" value="${Math.round(state.audio.master*100)}">
-          </div>
-          <div class="option-row">
-            <label>SFX Volume</label>
-            <input id="volSfx" type="range" min="0" max="100" value="${Math.round(state.audio.sfx*100)}">
-          </div>
-          <div class="option-row">
-            <label>Music Volume</label>
-            <input id="volMusic" type="range" min="0" max="100" value="${Math.round(state.audio.music*100)}">
-          </div>
-        </div>
-        <div style="display:flex; gap:8px; margin-top:12px;">
-          <button class="upgrade-btn" id="btnTest">TEST SOUNDS</button>
-          <button class="upgrade-btn primary" id="btnBack">${fromMain ? 'BACK' : 'CLOSE'}</button>
-        </div>
-      </div>
-    `;
-    const bind = (id, prop) => {
-      const el = root.querySelector(id);
-      el.oninput = () => {
-        state.audio[prop] = clamp01((+el.value || 0) / 100);
-        updateAudioGains();
-        saveAudioSettings();
-      };
-    };
-    bind('#volMaster', 'master');
-    bind('#volSfx', 'sfx');
-    bind('#volMusic', 'music');
-
-    root.querySelector('#btnTest').onclick = () => {
-      // brief sample burst
-      import('./audio.js').then(({playSound}) => {
-        playSound('shoot'); setTimeout(() => playSound('hit'), 100);
-        setTimeout(() => playSound('coin'), 220); setTimeout(() => playSound('upgrade'), 360);
-      });
-    };
-    root.querySelector('#btnBack').onclick = () => {
-      if (fromMain) showMainMenu();
-      else { root.style.display = 'none'; state.gamePaused = false; window.__updateLoopRunning && window.__updateLoopRunning(); }
-    };
-  }
-
-  function showMainMenu() {
-    state.gamePaused = true;
-    const root = state.dom.upgradeOverlay;
-    root.style.display = 'flex';
-    root.innerHTML = `
-      <div class="overlay-card">
-        <h1 class="overlay-title">AI SURVIVORS</h1>
-        <div class="overlay-subtitle">Top-down arena survivor</div>
-        <button class="upgrade-btn primary" id="btnStart">START GAME</button>
-        <button class="upgrade-btn" id="btnOptions">OPTIONS</button>
-      </div>
-    `;
-    const start = root.querySelector('#btnStart');
-    const opts = root.querySelector('#btnOptions');
-    start.onclick = () => {
-      root.style.display = 'none';
-      state.hasStarted = true;
-      state.gamePaused = false;
-      if (state.audioContext && state.audioContext.state === 'suspended') state.audioContext.resume();
-      showWaveIndicator(1);
-      loadWave();
-      startLoop();
-    };
-    opts.onclick = () => showOptionsMenu(true);
-  }
-
   const cfg = DEFAULT_CONFIG;
   state.cfg.enemies = Array.isArray(cfg.enemies) ? cfg.enemies : [];
   state.cfg.weapons = Array.isArray(cfg.weapons) ? cfg.weapons : [];
@@ -497,47 +420,7 @@ async function init() {
   state.cfg.background = typeof cfg.background === 'string' ? cfg.background : '#331a33';
   recomputeBackgroundGradient();
 
-  state.player = {
-    x: window.innerWidth / 2,
-    y: window.innerHeight / 2,
-    baseSpeed: 3.6,
-    speed: 3.6,
-    baseSize: 22,
-    size: 22,
-    hp: 60,
-    maxHp: 60,
-    weapons: state.cfg.weapons.length ? [0] : [],
-    lastShotMap: {},
-    velocity: {x: 0, y: 0},
-    acceleration: 0.3,
-    friction: 0.85,
-    dash: {
-      ready: true,
-      duration: 240,
-      cooldown: 800,
-      lastUsed: 0,
-      speed: 18,
-      damage: 4,
-      damageRadius: 26,
-      baseDamageRadius: 26,
-      startedAt: 0,
-      activeUntil: 0
-    },
-    bulletRange: 450,
-    bulletRangeMult: 1,       // global multiplier from upgrades
-    coinMagnetRadius: 140,    // px
-    coinCollectRadius: 28,    // px
-    regenPerSec: 0, // no passive regen unless upgraded
-    regenDelayMs: 4000,
-    lastDamagedAt: performance.now(),
-    lastRegenAt: 0,
-    coinGainMult: 1,
-    onKillHeal: 0,
-    contactDamageBase: 0,
-    contactThornsPercent: 0,
-    // optional: tune contact hit cadence; collisions.js uses fixed intervals
-    // contactTickMs: 300,
-  };
+  state.player = createDefaultPlayer();
 
   initPhysics(); // NEW: Initialize physics after player is created
 
