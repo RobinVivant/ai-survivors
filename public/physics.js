@@ -1,7 +1,7 @@
 import {state} from './state.js';
 import {AVBDWorld, Vec2} from './avbd2d.js';
 
-const PHYS_CFG = {iterations: 8, substeps: 1, gravity: new Vec2(0, 0), collisionCompliance: 0.0, cellSize: 64};
+const PHYS_CFG = {iterations: 9, substeps: 2, gravity: new Vec2(0, 0), collisionCompliance: 2e-5, cellSize: 64};
 const massFromSize = s => Math.max(1, (s || 8) * (s || 8) * 0.2); // pseudo area
 
 export function initPhysics() {
@@ -14,9 +14,26 @@ export function initPhysics() {
   };
 }
 
+function computeCellSize() {
+  const sizes = [];
+  if (state.player?.size) sizes.push(state.player.size);
+  for (const e of state.activeEnemies) if (e?.size) sizes.push(e.size);
+  const avgR = sizes.length ? (sizes.reduce((a, s) => a + s, 0) / sizes.length) : 12;
+  // Aim for ~diameter, snapped to 8px; clamp to a sensible range
+  const raw = avgR * 2.5;
+  const snapped = Math.round(Math.max(32, Math.min(96, raw)) / 8) * 8;
+  return snapped;
+}
+
 function rebuildWorld() {
   if (!state.player) return;
-  const w = new AVBDWorld(PHYS_CFG);
+  const cfg = {
+    ...PHYS_CFG,
+    cellSize: computeCellSize(),
+    contactSkin: 0.5,        // keep a small gap to reduce jitter/tunneling
+    velocityDamping: 0.98,   // mild internal damping to calm piles
+  };
+  const w = new AVBDWorld(cfg);
 
   // Player
   const pIdx = w.addParticle({

@@ -229,12 +229,13 @@ export class HalfSpaceConstraint extends Constraint {
 }
 
 export class CircleContactConstraint extends Constraint {
-  constructor(i, j, compliance = 0.0) {
+  constructor(i, j, compliance = 0.0, skin = 0.0) {
     super();
     this.i = i;
     this.j = j;
     this.compliance = compliance;
     this.lambda = 0.0;
+    this.skin = skin;
   }
 
   projectLocal(world, dt) {
@@ -246,7 +247,7 @@ export class CircleContactConstraint extends Constraint {
     const d = Vec2.sub(pi.xp, pj.xp);
     const dist = Math.max(d.len(), 1e-8);
     const n = Vec2.scale(d, 1.0 / dist);
-    const minDist = (pi.r || 0) + (pj.r || 0);
+    const minDist = (pi.r || 0) + (pj.r || 0) - (this.skin || 0);
     const g = dist - minDist;
     if (g >= 0) {
       this.lambda = 0.0;
@@ -272,11 +273,15 @@ export class AVBDSolver {
                 gravity = new Vec2(0, 0),
                 collisionCompliance = 0.0,
                 cellSize = 64,
+                contactSkin = 0.0,
+                velocityDamping = 1.0,
               } = {}) {
     this.iterations = iterations;
     this.substeps = substeps;
     this.gravity = gravity.clone();
     this.collisionCompliance = collisionCompliance;
+    this.contactSkin = contactSkin;
+    this.velocityDamping = velocityDamping;
     this.particles = [];
     this.constraints = [];
     this.grid = new SpatialHash(cellSize);
@@ -341,7 +346,7 @@ export class AVBDSolver {
         const dx = pi.xp.x - pj.xp.x, dy = pi.xp.y - pj.xp.y;
         const rsum = (pi.r || 0) + (pj.r || 0);
         if (dx * dx + dy * dy < rsum * rsum) {
-          contacts.push(new CircleContactConstraint(i, j, this.collisionCompliance));
+          contacts.push(new CircleContactConstraint(i, j, this.collisionCompliance, this.contactSkin));
         }
       }
     }
@@ -360,6 +365,7 @@ export class AVBDSolver {
       const vx = (p.xp.x - p.x.x) / dt;
       const vy = (p.xp.y - p.x.y) / dt;
       p.v.set(vx, vy);
+      if (this.velocityDamping !== 1.0) p.v.scale(this.velocityDamping);
       p.x.copy(p.xp);
     }
   }
