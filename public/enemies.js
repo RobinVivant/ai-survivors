@@ -155,21 +155,15 @@ export function createEnemyInstance(name) {
 
 export function moveEnemies(deltaTime) {
   const timeMultiplier = deltaTime / 16.67;
+  const now = Date.now();
   state.activeEnemies.forEach(e => {
-    if (e.frozen && Date.now() > e.frozen) {
+    if (e.frozen && now > e.frozen) {
       e.speed = e.originalSpeed || e.speed;
       delete e.frozen;
       delete e.originalSpeed;
     }
-    if (e.poisoned && Date.now() < e.poisoned) {
-      if (!e.lastPoisonTick || Date.now() - e.lastPoisonTick > 500) {
-        e.hp -= e.poisonDmg || 1;
-        e.lastPoisonTick = Date.now();
-        createParticles(e.x, e.y, '#00ff00', 3, 'poison');
-      }
-    }
     const stunned = e.knockUntil && now < e.knockUntil;
-    const recovering = !stunned && e.recoverUntil && Date.now() < e.recoverUntil;
+    const recovering = !stunned && e.recoverUntil && now < e.recoverUntil;
     if (e.poisoned && now < e.poisoned) {
       if (!e.lastPoisonTick || now - e.lastPoisonTick > 500) {
         e.hp -= e.poisonDmg || 1;
@@ -221,7 +215,7 @@ export function moveEnemies(deltaTime) {
           if (dist > 1) {
             const toP = { x: dx / dist, y: dy / dist };
             const side = { x: -toP.y, y: toP.x }; // perpendicular for lateral sway
-            const t = Date.now() * 0.005 + e.x * 0.15;
+            const t = now * 0.005 + e.x * 0.15;
             const sway = Math.sin(t);
             const useAVBD = !!(state.physics && state.physics.enabled);
             const desired = normalizeVec(
@@ -312,7 +306,7 @@ export function moveEnemies(deltaTime) {
       e.vy = dyStep / timeMultiplier;
     }
 
-    if (e.projectile && (!e.lastShot || Date.now() - e.lastShot > 2400)) {
+    if (e.projectile && (!e.lastShot || now - e.lastShot > 2400)) {
       const angle = Math.atan2(dy, dx);
       state.bullets.push({
         x: e.x,
@@ -326,7 +320,7 @@ export function moveEnemies(deltaTime) {
         piercing: 0,
         hitCount: 0
       });
-      e.lastShot = Date.now();
+      e.lastShot = now;
       playSound('shoot');
     }
 
