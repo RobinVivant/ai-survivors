@@ -27,6 +27,169 @@ function updateAudioGains() {
   n.musicGain && n.musicGain.gain.setValueAtTime(clamp01(state.audio.music), t);
 }
 
+function createDefaultPlayer() {
+  return {
+    x: window.innerWidth / 2,
+    y: window.innerHeight / 2,
+    baseSpeed: 3.6,
+    speed: 3.6,
+    baseSize: 22,
+    size: 22,
+    hp: 60,
+    maxHp: 60,
+    weapons: state.cfg.weapons.length ? [0] : [],
+    lastShotMap: {},
+    velocity: {x: 0, y: 0},
+    acceleration: 0.3,
+    friction: 0.85,
+    dash: {
+      ready: true,
+      duration: 240,
+      cooldown: 800,
+      lastUsed: 0,
+      speed: 18,
+      damage: 4,
+      damageRadius: 26,
+      baseDamageRadius: 26,
+      startedAt: 0,
+      activeUntil: 0
+    },
+    bulletRange: 450,
+    bulletRangeMult: 1,
+    coinMagnetRadius: 140,
+    coinCollectRadius: 28,
+    regenPerSec: 0,
+    regenDelayMs: 4000,
+    lastDamagedAt: performance.now(),
+    lastRegenAt: 0,
+    coinGainMult: 1,
+    onKillHeal: 0,
+    contactDamageBase: 0,
+    contactThornsPercent: 0,
+  };
+}
+
+function resetRunState() {
+  state.currentWave = 0;
+  state.score = 0;
+  state.kills = 0;
+  state.coins = 0;
+  state.nextUpgradeAt = 20;
+  state.scoreMultiplier = 1;
+  state.upgradesTaken = 0;
+  state.ownedUpgrades = [];
+  state.wave = {
+    queue: [],
+    types: [],
+    active: false,
+    spawnCap: 12,
+    spawnPerBurst: 8,
+    cooldownMs: 300,
+    nextAt: 0,
+    clusterRadius: 60,
+    durationMs: 30000,
+    endAt: 0,
+    lockSpawns: false,
+    shopAt: 0,
+  };
+  state.activeEnemies.length = 0;
+  state.bullets.length = 0;
+  state.particles.length = 0;
+  state.pickups.length = 0;
+  state.player = createDefaultPlayer();
+  initPhysics();
+  state.hasStarted = false;
+  state.gamePaused = true;
+  if (state.dom.countdown) {
+    state.dom.countdown.style.opacity = '0';
+    state.dom.countdown.textContent = '';
+  }
+  if (state.dom.runFill) state.dom.runFill.style.width = '0%';
+  window.__updateLoopRunning && window.__updateLoopRunning();
+}
+
+function showOptionsMenu(fromMain = false) {
+  const root = state.dom.upgradeOverlay;
+  root.style.display = 'flex';
+  root.innerHTML = `
+    <div class="overlay-card">
+      <h2 class="overlay-title">OPTIONS</h2>
+      <div class="options-grid">
+        <div class="option-row">
+          <label>Master Volume</label>
+          <input id="volMaster" type="range" min="0" max="100" value="${Math.round(state.audio.master*100)}">
+        </div>
+        <div class="option-row">
+          <label>SFX Volume</label>
+          <input id="volSfx" type="range" min="0" max="100" value="${Math.round(state.audio.sfx*100)}">
+        </div>
+        <div class="option-row">
+          <label>Music Volume</label>
+          <input id="volMusic" type="range" min="0" max="100" value="${Math.round(state.audio.music*100)}">
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button class="upgrade-btn" id="btnTest">TEST SOUNDS</button>
+        <button class="upgrade-btn primary" id="btnBack">${fromMain ? 'BACK' : 'CLOSE'}</button>
+      </div>
+    </div>
+  `;
+  const bind = (id, prop) => {
+    const el = root.querySelector(id);
+    el.oninput = () => {
+      state.audio[prop] = clamp01((+el.value || 0) / 100);
+      updateAudioGains();
+      saveAudioSettings();
+    };
+  };
+  bind('#volMaster', 'master');
+  bind('#volSfx', 'sfx');
+  bind('#volMusic', 'music');
+
+  root.querySelector('#btnTest').onclick = () => {
+    import('./audio.js').then(({playSound}) => {
+      playSound('shoot'); setTimeout(() => playSound('hit'), 100);
+      setTimeout(() => playSound('coin'), 220); setTimeout(() => playSound('upgrade'), 360);
+    });
+  };
+  root.querySelector('#btnBack').onclick = () => {
+    if (fromMain) showMainMenu();
+    else {
+      root.style.display = 'none';
+      state.gamePaused = false;
+      window.__updateLoopRunning && window.__updateLoopRunning();
+    }
+  };
+}
+
+function showMainMenu() {
+  state.gamePaused = true;
+  const root = state.dom.upgradeOverlay;
+  root.style.display = 'flex';
+  root.innerHTML = `
+    <div class="overlay-card">
+      <h1 class="overlay-title">AI SURVIVORS</h1>
+      <div class="overlay-subtitle">Top-down arena survivor</div>
+      <button class="upgrade-btn primary" id="btnStart">START GAME</button>
+      <button class="upgrade-btn" id="btnOptions">OPTIONS</button>
+    </div>
+  `;
+  const start = root.querySelector('#btnStart');
+  const opts = root.querySelector('#btnOptions');
+  start.onclick = () => {
+    resetRunState(); // always start a fresh run
+    root.style.display = 'none';
+    state.hasStarted = true;
+    state.gamePaused = false;
+    if (state.audioContext && state.audioContext.state === 'suspended') state.audioContext.resume();
+    showWaveIndicator(1);
+    loadWave();
+    startLoop();
+  };
+  opts.onclick = () => showOptionsMenu(true);
+}
+
+
 function resizeCanvas() {
   if (!state.dom.canvas || !state.dom.ctx) return;
   const dpr = Math.max(window.devicePixelRatio || 1, 1);
@@ -178,9 +341,26 @@ function setupInput() {
           <div class="owned-list">${ownedUpgradesHtml || '<i>None</i>'}</div>
         </div>
         <div class="overlay-tiny">Game auto-pauses during upgrades</div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="upgrade-btn primary" id="btnResume">RESUME</button>
+          <button class="upgrade-btn" id="btnQuit">QUIT TO MENU</button>
+        </div>
       </div>
     `;
           state.dom.upgradeOverlay.style.display = 'flex';
+          const root = state.dom.upgradeOverlay;
+          const btnResume = root.querySelector('#btnResume');
+          const btnQuit = root.querySelector('#btnQuit');
+          btnResume.onclick = () => {
+            state.gamePaused = false;
+            root.style.display = 'none';
+            window.__updateLoopRunning && window.__updateLoopRunning();
+          };
+          btnQuit.onclick = () => {
+            stopLoop();
+            resetRunState();
+            showMainMenu();
+          };
           // Hide countdown while paused
           if (state.dom.countdown) {
             state.dom.countdown.style.opacity = '0';
