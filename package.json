@@ -2,8 +2,8 @@
   "name": "ai-survivors",
   "private": true,
   "scripts": {
-    "dev": "bun run server",
-    "server": "bun run server/server.ts",
+    "dev": "DEV=1 bun run server/server.ts",
+    "server": "bun run scripts/generate-assets.ts && bun run server/server.ts",
     "build:web": "bash scripts/build.sh",
     "build:desktop": "bash scripts/build-desktop.sh",
     "desktop": "bun run server/desktop.ts"

@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 set -euo pipefail
-bun run server
+DEV=1 bun run server/server.ts
