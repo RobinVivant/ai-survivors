@@ -4,6 +4,29 @@ import {playSound} from './audio.js';
 import {createEnemyInstance} from './enemies.js';
 import {buildSpatialHash, querySpatialHash} from './spatial.js';
 
+function applyKnockback(target, srcX, srcY, maxStrength = 14, radius = 80) {
+  let dx = target.x - srcX;
+  let dy = target.y - srcY;
+  let dist = Math.hypot(dx, dy);
+  if (dist < 1e-3) {
+    const a = Math.random() * Math.PI * 2;
+    dx = Math.cos(a);
+    dy = Math.sin(a);
+    dist = 1;
+  }
+  const rel = Math.max(0, Math.min(1, (radius - dist) / Math.max(1, radius)));
+  const k = maxStrength * (0.35 + 0.65 * rel); // a bit more near the center
+
+  // Velocity impulse (px/frame); AVBD will pick this up next frame
+  target.vx = (target.vx || 0) + (dx / dist) * k;
+  target.vy = (target.vy || 0) + (dy / dist) * k;
+
+  // Tag for “enemy as projectile” impact damage
+  const now = Date.now();
+  target._impactUntil = now + 240;
+  target._impactPower = Math.max(target._impactPower || 0, k); // carry some strength forward
+}
+
 function computeCoinDrop(e) {
   const points = Math.max(1, e.points || 1);
   const projectileBonus = e.projectile ? 0.2 : 0;
@@ -188,6 +211,7 @@ export function handleCollisions() {
         if (e._dashHitAt !== state.player.dash.startedAt) {
           e._dashHitAt = state.player.dash.startedAt;
           e.hp -= state.player.dash.damage;
+          applyKnockback(e, state.player.x, state.player.y, 16, (state.player.dash.damageRadius || (state.player.size + 10)) + 8);
           createParticles(e.x, e.y, '#66ffff', 6, 'hit');
         }
       }
@@ -242,17 +266,25 @@ export function handleCollisions() {
           e.speed = e.originalSpeed * 0.3;
         }
         if (b.explosive > 0) {
-          const aoe = querySpatialHash(enemyHash, e.x, e.y, b.explosive);
+          const centerX = e.x;
+          const centerY = e.y;
+          const kbMax = Math.max(10, Math.min(36, b.explosive * 0.4)); // scale with radius, clamp
+
+          // Primary target knockback
+          applyKnockback(e, centerX, centerY, kbMax, b.explosive);
+
+          const aoe = querySpatialHash(enemyHash, centerX, centerY, b.explosive);
           aoe.forEach(other => {
             if (other !== e) {
-              const dist = Math.hypot(other.x - e.x, other.y - e.y);
+              const dist = Math.hypot(other.x - centerX, other.y - centerY);
               if (dist < b.explosive) {
                 other.hp -= Math.ceil(b.dmg * 0.5);
+                applyKnockback(other, centerX, centerY, kbMax, b.explosive);
                 createParticles(other.x, other.y, '#ff6600', 4, 'explosion');
               }
             }
           });
-          createParticles(e.x, e.y, '#ff6600', 12, 'explosion');
+          createParticles(centerX, centerY, '#ff6600', 12, 'explosion');
           addCameraShake(5, 10);
         }
         if (b.chain > 0 && b.chainCount < b.chain) {
