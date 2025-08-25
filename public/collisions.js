@@ -330,6 +330,44 @@ export function handleCollisions() {
       }, 100);
     }
   });
+  {
+    const now = Date.now();
+    state.activeEnemies.forEach(src => {
+      if ((src._impactUntil || 0) < now) return; // not “projectile” anymore
+      const neighbors = querySpatialHash(enemyHash, src.x, src.y, (src.size || 0) + 64);
+      neighbors.forEach(dst => {
+        if (dst === src) return;
+        const dx = dst.x - src.x;
+        const dy = dst.y - src.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const minDist = (dst.size || 0) + (src.size || 0);
+        if (dist <= minDist + (usingAVBD ? 0.5 : 0)) {
+          // rate-limit so a single overlap doesn’t spam many hits
+          if (now - (dst._lastHitFromEnemyAt || 0) < 120) return;
+
+          const relV = Math.hypot((src.vx || 0) - (dst.vx || 0), (src.vy || 0) - (dst.vy || 0));
+          const power = src._impactPower || 0;
+          const dmg = Math.max(1, Math.round(power * (0.35 + Math.min(1, relV / 12))));
+          dst.hp -= dmg;
+
+          // shove the target and propagate a weaker impact for possible short chains
+          const shove = Math.min(16, power * 0.6);
+          dst.vx = (dst.vx || 0) + (dx / dist) * shove;
+          dst.vy = (dst.vy || 0) + (dy / dist) * shove;
+          dst._impactPower = Math.max(dst._impactPower || 0, power * 0.45);
+          dst._impactUntil = now + 140;
+
+          // decay the source impact so it doesn’t hit infinitely
+          src._impactPower = power * 0.5;
+          if (src._impactPower < 1) src._impactUntil = now;
+
+          dst._lastHitFromEnemyAt = now;
+          createParticles(dst.x, dst.y, '#ff9966', 5, 'hit');
+          playSound('hit');
+        }
+      });
+    });
+  }
   for (let i = state.pickups.length - 1; i >= 0; i--) {
     const p = state.pickups[i];
     const dist = Math.hypot(p.x - state.player.x, p.y - state.player.y);
