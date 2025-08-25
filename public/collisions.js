@@ -9,9 +9,18 @@ function computeCoinDrop(e) {
   const projectileBonus = e.projectile ? 0.2 : 0;
   const abilityBonus = ({shield: 0.4, rage: 0.3, teleport: 0.4, split: 0.3}[e.specialAbility] || 0);
   const behaviorBonus = (e.behavior === 'kamikaze' || e.behavior === 'sniper') ? 0.2 : 0;
+
+  // Early-game boost: stronger on low waves, fades out by wave 5
+  const w = state.currentWave || 0;
+  const earlyFactor = 1 + Math.max(0, 5 - w) * 0.15; // w=0 -> 1.75x, w=2 -> 1.45x, w>=5 -> 1.0x
+
   const base = points * 0.12 + projectileBonus + abilityBonus + behaviorBonus;
   const variance = (Math.random() * 0.6 - 0.3);
-  return Math.max(0, Math.round(base + variance));
+  const raw = (base + variance) * earlyFactor;
+
+  // Guarantee at least 1 coin for the first two waves
+  const minClamp = (w <= 2) ? 1 : 0;
+  return Math.max(minClamp, Math.round(raw));
 }
 
 function spawnHealthPack(x, y, amount = 5) {
