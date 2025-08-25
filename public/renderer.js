@@ -124,12 +124,12 @@ export function draw() {
   state.dom.ctx.stroke();
   state.dom.ctx.restore();
 
-  # Orbiting weapons (small colored circles around the player)
+  // Orbiting weapons (small colored circles around the player)
   const ownedWeapons = state.player?.weapons || [];
   const nWeapons = ownedWeapons.length;
   if (nWeapons > 0) {
-    const t = performance.now() * 0.002; # rotation speed (radians per ms)
-    const orbitR = (state.player.size || 22) + 16; # close orbit
+    const t = performance.now() * 0.002; // rotation speed (radians per ms)
+    const orbitR = (state.player.size || 22) + 16; // close orbit
     state.dom.ctx.save();
     state.dom.ctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < nWeapons; i++) {
@@ -138,7 +138,7 @@ export function draw() {
       const ang = t + (i * Math.PI * 2) / nWeapons;
       const wx = state.player.x + Math.cos(ang) * orbitR;
       const wy = state.player.y + Math.sin(ang) * orbitR;
-      const orbSize = 5; # small weapon indicator
+      const orbSize = 5; // small weapon indicator
 
       state.dom.ctx.save();
       state.dom.ctx.shadowBlur = 14;
