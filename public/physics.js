@@ -30,7 +30,7 @@ function rebuildWorld() {
   const cfg = {
     ...PHYS_CFG,
     cellSize: computeCellSize(),
-    contactSkin: 0.5,        // keep a small gap to reduce jitter/tunneling
+    contactSkin: -1.5, // negative => enforce ~1.5px air gap
     velocityDamping: 0.98,   // mild internal damping to calm piles
   };
   const w = new AVBDWorld(cfg);
