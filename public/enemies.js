@@ -2,6 +2,43 @@ import {state} from './state.js';
 import {createParticles, createTrailParticle} from './effects.js';
 import {playSound} from './audio.js';
 
+// Flocking (boids) helpers
+const FLOCK_BEHAVIORS = new Set(['chase', 'zigzag', 'kamikaze']);
+function computeFlockVector(e, all) {
+  const radius = Math.max(80, (e.size || 8) * 8);           // perception radius
+  const sepDist = Math.max(12, (e.size || 8) * 2.2);        // desired separation
+  let count = 0, sepX = 0, sepY = 0, velX = 0, velY = 0, cx = 0, cy = 0;
+  for (const o of all) {
+    if (o === e || o.name !== e.name) continue;             // only same kind
+    const dx = o.x - e.x, dy = o.y - e.y;
+    const d2 = dx*dx + dy*dy;
+    if (d2 > radius * radius) continue;
+    const d = Math.sqrt(d2) || 1;
+    count++;
+    cx += o.x; cy += o.y;
+    velX += o.vx || 0; velY += o.vy || 0;
+    if (d < sepDist) {
+      const s = (sepDist - d) / sepDist;                    // stronger when closer
+      sepX -= (dx / d) * s;
+      sepY -= (dy / d) * s;
+    }
+  }
+  if (!count) return null;
+  const norm = (x, y) => {
+    const l = Math.hypot(x, y);
+    return l > 1e-6 ? { x: x / l, y: y / l } : { x: 0, y: 0 };
+  };
+  const sep = norm(sepX, sepY);                              // separation
+  const align = norm(velX, velY);                            // alignment
+  const toCenter = { x: (cx / count) - e.x, y: (cy / count) - e.y };
+  const coh = norm(toCenter.x, toCenter.y);                  // cohesion
+  const sepW = 1.1, alignW = 0.6, cohW = 0.5;
+  let rx = sep.x * sepW + align.x * alignW + coh.x * cohW;
+  let ry = sep.y * sepW + align.y * alignW + coh.y * cohW;
+  const r = norm(rx, ry);
+  return (r.x || r.y) ? r : null;                            // unit direction or null
+}
+
 export function createEnemyInstance(name) {
   const def = state.cfg.enemies.find(e => e.name === name) || {
     name: 'Unknown',
@@ -98,6 +135,9 @@ export function moveEnemies(deltaTime) {
     const dx = state.player.x - e.x;
     const dy = state.player.y - e.y;
     const dist = Math.hypot(dx, dy);
+    const flockDir = FLOCK_BEHAVIORS.has(e.behavior || 'chase')
+      ? computeFlockVector(e, state.activeEnemies)
+      : null;
     switch (e.behavior) {
       case 'chase':
       default:
@@ -106,6 +146,11 @@ export function moveEnemies(deltaTime) {
           const moveSpeed = e.speed * timeMultiplier;
           e.x += (dx / dist) * moveSpeed + randomOffset;
           e.y += (dy / dist) * moveSpeed + randomOffset;
+          if (flockDir) {
+            const gain = (e.flockGain ?? 0.6) * e.speed * timeMultiplier;
+            e.x += flockDir.x * gain;
+            e.y += flockDir.y * gain;
+          }
         }
         break;
       case 'zigzag':
@@ -114,6 +159,11 @@ export function moveEnemies(deltaTime) {
           const moveSpeed = e.speed * timeMultiplier;
           e.x += (dx / dist) * moveSpeed + zigzag;
           e.y += (dy / dist) * moveSpeed + zigzag;
+          if (flockDir) {
+            const gain = (e.flockGain ?? 0.6) * e.speed * timeMultiplier;
+            e.x += flockDir.x * gain;
+            e.y += flockDir.y * gain;
+          }
         }
         break;
       case 'orbit':
@@ -164,6 +214,11 @@ export function moveEnemies(deltaTime) {
           e.y += (dy / dist) * moveSpeed;
           if (speedBoost > 1.5) {
             createTrailParticle(e.x, e.y, e.color);
+          }
+          if (flockDir) {
+            const gain = (e.flockGain ?? 0.6) * e.speed * speedBoost * timeMultiplier;
+            e.x += flockDir.x * gain;
+            e.y += flockDir.y * gain;
           }
         }
         break;
