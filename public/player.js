@@ -76,12 +76,20 @@ export function handleShooting(ts) {
     }
   });
   if (!nearestEnemy) return;
+  const nWeapons = state.player.weapons.length;
+  const t = performance.now() * 0.002;
+  const orbitR = (state.player.size || 22) + 16;
 
-  state.player.weapons.forEach(wi => {
+  state.player.weapons.forEach((wi, idx) => {
     const w = state.cfg.weapons[wi];
     if (!w) return;
     const interval = 1000 / (w.fireRate || 1);
     if ((ts - (state.player.lastShotMap[wi] || 0)) < interval) return;
+
+    // Orbiting origin for this weapon (matches renderer)
+    const angOrbit = t + (idx * Math.PI * 2) / Math.max(1, nWeapons);
+    const originX = state.player.x + Math.cos(angOrbit) * orbitR;
+    const originY = state.player.y + Math.sin(angOrbit) * orbitR;
 
     // Contact weapon: aura/ram-style damage
     if (w.contactDamage && w.contactDamage > 0) {
@@ -108,17 +116,17 @@ export function handleShooting(ts) {
     const baseRangePx = (w.range ? w.range * unit : state.player.bulletRange);
     const maxDist = baseRangePx * (state.player.bulletRangeMult || 1);
 
-    // Pick a target this weapon can actually reach
+    // Pick a target this weapon can actually reach (from this weapon's origin)
     let targetEnemy = nearestEnemy;
     if (targetEnemy) {
-      const d = Math.hypot(targetEnemy.x - state.player.x, targetEnemy.y - state.player.y);
+      const d = Math.hypot(targetEnemy.x - originX, targetEnemy.y - originY);
       if (d > maxDist) targetEnemy = null;
     }
     if (!targetEnemy) {
       let best = null;
       let bestDist = maxDist;
       state.activeEnemies.forEach(enemy => {
-        const d = Math.hypot(enemy.x - state.player.x, enemy.y - state.player.y);
+        const d = Math.hypot(enemy.x - originX, enemy.y - originY);
         if (d <= maxDist && d < bestDist) {
           bestDist = d;
           best = enemy;
@@ -131,14 +139,14 @@ export function handleShooting(ts) {
     // Mark shot only when we actually fire
     state.player.lastShotMap[wi] = ts;
 
-    const dx = targetEnemy.x - state.player.x;
-    const dy = targetEnemy.y - state.player.y;
+    const dx = targetEnemy.x - originX;
+    const dy = targetEnemy.y - originY;
     const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * (w.spread || 0);
     const speed = w.bulletSpeed || w.speed || 5;
 
     const bullet = {
-      x: state.player.x,
-      y: state.player.y,
+      x: originX,
+      y: originY,
       dx: Math.cos(angle) * speed,
       dy: Math.sin(angle) * speed,
       size: (w.bulletSize || 3) + (state.player._bulletSizeBonusFromCoins || 0),
