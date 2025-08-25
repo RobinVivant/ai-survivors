@@ -37,6 +37,7 @@ export const state = {
     endAt: 0
   },
   // runtime/lifecycle
+  hasStarted: false,
   running: false,
   isVisible: true,
   isFocused: true,
@@ -54,6 +55,8 @@ export const state = {
 
   // environment
   audioContext: null,
+  audio: { master: 0.85, sfx: 0.9, music: 0.7 },
+  audioNodes: { masterGain: null, sfxGain: null, musicGain: null, compressor: null },
   dom: {
     canvas: null,
     ctx: null,

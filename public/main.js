@@ -3,6 +3,30 @@ import {initStars, state} from './state.js';
 import {draw, loadWave, showGameOver, showWaveIndicator, update} from './systems.js';
 import {initPhysics} from './physics.js';
 
+const AUDIO_STORE_KEY = 'ai_survivors_audio';
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+function loadAudioSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem(AUDIO_STORE_KEY) || '{}');
+    if (typeof s.master === 'number') state.audio.master = clamp01(s.master);
+    if (typeof s.sfx === 'number') state.audio.sfx = clamp01(s.sfx);
+    if (typeof s.music === 'number') state.audio.music = clamp01(s.music);
+  } catch {}
+}
+function saveAudioSettings() {
+  localStorage.setItem(AUDIO_STORE_KEY, JSON.stringify({
+    master: state.audio.master, sfx: state.audio.sfx, music: state.audio.music
+  }));
+}
+function updateAudioGains() {
+  const n = state.audioNodes;
+  if (!n || !state.audioContext) return;
+  const t = state.audioContext.currentTime;
+  n.masterGain && n.masterGain.gain.setValueAtTime(clamp01(state.audio.master), t);
+  n.sfxGain && n.sfxGain.gain.setValueAtTime(clamp01(state.audio.sfx), t);
+  n.musicGain && n.musicGain.gain.setValueAtTime(clamp01(state.audio.music), t);
+}
+
 function resizeCanvas() {
   if (!state.dom.canvas || !state.dom.ctx) return;
   const dpr = Math.max(window.devicePixelRatio || 1, 1);
@@ -44,6 +68,31 @@ function setupDOM() {
 function setupAudio() {
   try {
     state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = state.audioContext;
+
+    // Build master/compressor bus
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.setValueAtTime(-24, ctx.currentTime);
+    comp.knee.setValueAtTime(18, ctx.currentTime);
+    comp.ratio.setValueAtTime(3, ctx.currentTime);
+    comp.attack.setValueAtTime(0.003, ctx.currentTime);
+    comp.release.setValueAtTime(0.25, ctx.currentTime);
+
+    const master = ctx.createGain();
+    const sfx = ctx.createGain();
+    const music = ctx.createGain();
+
+    sfx.connect(comp);
+    music.connect(comp);
+    comp.connect(master);
+    master.connect(ctx.destination);
+
+    state.audioNodes.compressor = comp;
+    state.audioNodes.masterGain = master;
+    state.audioNodes.sfxGain = sfx;
+    state.audioNodes.musicGain = music;
+
+    updateAudioGains();
   } catch (e) {
     console.log('Web Audio API not supported');
   }
@@ -82,6 +131,7 @@ function setupInput() {
 
     // Pause toggle (avoid if overlay is currently showing upgrades/victory/game over)
     if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+      if (!state.hasStarted) return;
       const overlay = state.dom.upgradeOverlay;
       const overlayVisible = overlay && getComputedStyle(overlay).display !== 'none';
       const txt = overlayVisible ? (overlay.textContent || '') : '';
@@ -176,10 +226,88 @@ function setupInput() {
 }
 
 async function init() {
+  loadAudioSettings();
   setupDOM();
   setupAudio();
   setupInput();
   initStars(200);
+
+  function showOptionsMenu(fromMain = false) {
+    const root = state.dom.upgradeOverlay;
+    root.style.display = 'flex';
+    root.innerHTML = `
+      <div class="overlay-card">
+        <h2 class="overlay-title">OPTIONS</h2>
+        <div class="options-grid">
+          <div class="option-row">
+            <label>Master Volume</label>
+            <input id="volMaster" type="range" min="0" max="100" value="${Math.round(state.audio.master*100)}">
+          </div>
+          <div class="option-row">
+            <label>SFX Volume</label>
+            <input id="volSfx" type="range" min="0" max="100" value="${Math.round(state.audio.sfx*100)}">
+          </div>
+          <div class="option-row">
+            <label>Music Volume</label>
+            <input id="volMusic" type="range" min="0" max="100" value="${Math.round(state.audio.music*100)}">
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="upgrade-btn" id="btnTest">TEST SOUNDS</button>
+          <button class="upgrade-btn primary" id="btnBack">${fromMain ? 'BACK' : 'CLOSE'}</button>
+        </div>
+      </div>
+    `;
+    const bind = (id, prop) => {
+      const el = root.querySelector(id);
+      el.oninput = () => {
+        state.audio[prop] = clamp01((+el.value || 0) / 100);
+        updateAudioGains();
+        saveAudioSettings();
+      };
+    };
+    bind('#volMaster', 'master');
+    bind('#volSfx', 'sfx');
+    bind('#volMusic', 'music');
+
+    root.querySelector('#btnTest').onclick = () => {
+      // brief sample burst
+      import('./audio.js').then(({playSound}) => {
+        playSound('shoot'); setTimeout(() => playSound('hit'), 100);
+        setTimeout(() => playSound('coin'), 220); setTimeout(() => playSound('upgrade'), 360);
+      });
+    };
+    root.querySelector('#btnBack').onclick = () => {
+      if (fromMain) showMainMenu();
+      else { root.style.display = 'none'; state.gamePaused = false; window.__updateLoopRunning && window.__updateLoopRunning(); }
+    };
+  }
+
+  function showMainMenu() {
+    state.gamePaused = true;
+    const root = state.dom.upgradeOverlay;
+    root.style.display = 'flex';
+    root.innerHTML = `
+      <div class="overlay-card">
+        <h1 class="overlay-title">AI SURVIVORS</h1>
+        <div class="overlay-subtitle">Top-down arena survivor</div>
+        <button class="upgrade-btn primary" id="btnStart">START GAME</button>
+        <button class="upgrade-btn" id="btnOptions">OPTIONS</button>
+      </div>
+    `;
+    const start = root.querySelector('#btnStart');
+    const opts = root.querySelector('#btnOptions');
+    start.onclick = () => {
+      root.style.display = 'none';
+      state.hasStarted = true;
+      state.gamePaused = false;
+      if (state.audioContext && state.audioContext.state === 'suspended') state.audioContext.resume();
+      showWaveIndicator(1);
+      loadWave();
+      startLoop();
+    };
+    opts.onclick = () => showOptionsMenu(true);
+  }
 
   const cfg = DEFAULT_CONFIG;
   state.cfg.enemies = Array.isArray(cfg.enemies) ? cfg.enemies : [];
@@ -234,9 +362,7 @@ async function init() {
   initPhysics(); // NEW: Initialize physics after player is created
 
   state.loading = false;
-  showWaveIndicator(1);
-  loadWave();
-  startLoop();
+  showMainMenu();
 }
 
 function gameLoop(ts) {
