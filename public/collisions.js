@@ -17,7 +17,7 @@ function applyKnockback(target, srcX, srcY, maxStrength = 14, radius = 80) {
     dist = 1;
   }
   const rel = Math.max(0, Math.min(1, (radius - dist) / Math.max(1, radius)));
-  const k = maxStrength * (0.35 + 0.65 * rel); // a bit more near the center
+  const k = maxStrength * (0.25 + 0.45 * rel); // softer falloff, overall less knockback
 
   // Velocity impulse (px/frame); AVBD will pick this up next frame
   target.vx = (target.vx || 0) + (dx / dist) * k;
@@ -25,7 +25,7 @@ function applyKnockback(target, srcX, srcY, maxStrength = 14, radius = 80) {
 
   // Tag for “enemy as projectile” impact damage
   const now = Date.now();
-  const stunMs = 140 + Math.round(8 * k); // stronger hits = longer stun
+  const stunMs = 100 + Math.round(5 * k); // softer stun scaling
   target.knockUntil = Math.max(target.knockUntil || 0, now + stunMs);
   target._impactUntil = now + 240;
   target._impactPower = Math.max(target._impactPower || 0, k); // carry some strength forward
@@ -175,7 +175,7 @@ export function handleCollisions() {
         const speed = Math.hypot(p.velocity.x || 0, p.velocity.y || 0);
         if (baseRam <= 0 && speed > 2.2 && nowMs - (e._lastBumpImpulseAt || 0) >= 120) {
           const sizeBoost = Math.max(0.9, (p.size || 1) / (p.baseSize || 22));
-          const kb = Math.min(40, 6 + speed * 2.4 * sizeBoost);
+          const kb = Math.min(28, 4 + speed * 1.8 * sizeBoost);
           applyKnockback(e, p.x, p.y, kb, (p.size || 22) + 10);
           e._lastBumpImpulseAt = nowMs;
         }
@@ -213,7 +213,7 @@ export function handleCollisions() {
         e.hp -= ramDmg;
         {
           const spd = Math.hypot(p.velocity.x || 0, p.velocity.y || 0);
-          const knock = Math.min(42, 10 + spd * 3.0 * sizeScale);
+          const knock = Math.min(30, 8 + spd * 2.2 * sizeScale);
           applyKnockback(e, p.x, p.y, knock, (p.size || 22) + 12);
         }
         createParticles(e.x, e.y, '#99ffcc', 5, 'hit');
@@ -232,7 +232,7 @@ export function handleCollisions() {
         if (e._dashHitAt !== state.player.dash.startedAt) {
           e._dashHitAt = state.player.dash.startedAt;
           e.hp -= state.player.dash.damage;
-          const kbMax = Math.min(44, 12 + (state.player.dash.speed || 18) * 1.4);
+          const kbMax = Math.min(32, 10 + (state.player.dash.speed || 18) * 1.1);
           applyKnockback(e, state.player.x, state.player.y, kbMax, (state.player.dash.damageRadius || (state.player.size + 10)) + 8);
           createParticles(e.x, e.y, '#66ffff', 6, 'hit');
         }
@@ -318,7 +318,7 @@ export function handleCollisions() {
         if (b.explosive > 0) {
           const centerX = e.x;
           const centerY = e.y;
-          const kbMax = Math.max(12, Math.min(80, b.explosive * 0.6)); // stronger knockback for huge explosions
+          const kbMax = Math.max(8, Math.min(60, b.explosive * 0.4)); // reduced knockback
 
           // Primary target knockback
           applyKnockback(e, centerX, centerY, kbMax, b.explosive);
@@ -403,7 +403,7 @@ export function handleCollisions() {
           dst.hp -= dmg;
 
           // shove the target and propagate a weaker impact for possible short chains
-          const shove = Math.min(28, power * 0.9);
+          const shove = Math.min(20, power * 0.7);
           dst.vx = (dst.vx || 0) + (dx / dist) * shove;
           dst.vy = (dst.vy || 0) + (dy / dist) * shove;
           dst._impactPower = Math.max(dst._impactPower || 0, power * 0.6);
@@ -415,7 +415,7 @@ export function handleCollisions() {
           src.knockUntil = Math.max(src.knockUntil || 0, now + stunSrc);
 
           // keep some momentum on the source so short chains are more likely
-          src._impactPower = power * 0.7;
+          src._impactPower = power * 0.6;
           if (src._impactPower < 1) src._impactUntil = now;
 
           dst._lastHitFromEnemyAt = now;

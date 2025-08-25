@@ -40,34 +40,23 @@ export function updateWaveSpawner() {
 
   if (state.wave.lockSpawns) return;
 
-  // Spawn a clustered burst from a screen edge
-  const edge = Math.floor(Math.random() * 4);
-  let cx, cy;
-  if (edge === 0) {
-    cx = Math.random() * window.innerWidth;
-    cy = -20;
-  } else if (edge === 1) {
-    cx = window.innerWidth + 20;
-    cy = Math.random() * window.innerHeight;
-  } else if (edge === 2) {
-    cx = Math.random() * window.innerWidth;
-    cy = window.innerHeight + 20;
-  } else {
-    cx = -20;
-    cy = Math.random() * window.innerHeight;
-  }
-
+  // Spawn anywhere inside the viewport, but keep a minimum distance from the player
   for (let i = 0; i < toSpawn; i++) {
-    const r = state.wave.clusterRadius || 60;
-    const rx = (Math.random() - 0.5) * r * 2;
-    const ry = (Math.random() - 0.5) * r * 2;
     const names = state.wave.types;
     const name = names.length ? names[Math.floor(Math.random() * names.length)] : null;
     if (!name) break;
     const e = createEnemyInstance(name);
     const pad = e.size || 6;
-    e.x = Math.max(pad, Math.min(window.innerWidth - pad, cx + rx));
-    e.y = Math.max(pad, Math.min(window.innerHeight - pad, cy + ry));
+    const minDist = Math.max(120, (state.player?.size || 22) + pad + 40);
+    let attempts = 0;
+    let x = pad, y = pad;
+    do {
+      x = pad + Math.random() * (window.innerWidth - 2 * pad);
+      y = pad + Math.random() * (window.innerHeight - 2 * pad);
+      attempts++;
+    } while (attempts < 20 && Math.hypot(x - state.player.x, y - state.player.y) < minDist);
+    e.x = x;
+    e.y = y;
     state.activeEnemies.push(e);
   }
 

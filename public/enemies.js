@@ -79,29 +79,16 @@ export function createEnemyInstance(name) {
     points: 1
   };
 
-  // Spawn enemies further from player to avoid instant collision
+  // Spawn anywhere in the viewport, but keep a minimum distance from the player
   let x, y;
-  const minDistance = 100;
+  const s = Math.max(4, def.size || 8);
+  const minDistance = Math.max(120, (state.player?.size || 22) + s + 40);
   let attempts = 0;
-
   do {
-    const edge = Math.floor(Math.random() * 4);
-    const s = Math.max(4, def.size || 8);
-    if (edge === 0) {
-      x = Math.random() * window.innerWidth;
-      y = s;
-    } else if (edge === 1) {
-      x = window.innerWidth - s;
-      y = Math.random() * window.innerHeight;
-    } else if (edge === 2) {
-      x = Math.random() * window.innerWidth;
-      y = window.innerHeight - s;
-    } else {
-      x = s;
-      y = Math.random() * window.innerHeight;
-    }
+    x = s + Math.random() * (window.innerWidth - 2 * s);
+    y = s + Math.random() * (window.innerHeight - 2 * s);
     attempts++;
-  } while (Math.hypot(x - state.player.x, y - state.player.y) < minDistance && attempts < 10);
+  } while (Math.hypot(x - state.player.x, y - state.player.y) < minDistance && attempts < 20);
 
   const wave = Math.max(0, state.currentWave || 0);
   const hpScale = 1 + wave * 0.15;
