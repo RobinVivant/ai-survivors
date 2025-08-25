@@ -1,4 +1,5 @@
 # AI Survivors
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
 A fast, demoscene-styled, top-down arena survivor built with vanilla JS, Canvas2D, and Bun. Ships as both a web app and a tiny desktop app (via webview-bun). All static assets are embedded into a single binary for distribution.
 
@@ -26,7 +27,8 @@ bun install
 bun run scripts/generate-assets.ts
 
 # 3) Start dev server (defaults to http://localhost:3000)
-bun run server
+bun run dev
+# or: bun run server
 # or: PORT=8080 bun run server
 ```
 
@@ -49,6 +51,13 @@ bash scripts/build-desktop.sh
 ./dist/ai-survivors-desktop
 ```
 
+## Available Scripts
+- bun run dev — start dev server (alias for “server”)
+- bun run server — start dev server (serves embedded assets, falls back to filesystem in dev)
+- bun run build:web — build single-file server binary (dist/ai-survivors)
+- bun run build:desktop — build desktop WebView app (dist/ai-survivors-desktop)
+- bun run desktop — run desktop app from source (spawns embedded server + WebView)
+
 Linux desktop build requirements (WebKitGTK):
 - Ubuntu/Debian: sudo apt-get install -y libwebkit2gtk-4.0-37 libgtk-3-0 libglib2.0-0
 - Fedora: sudo dnf install webkit2gtk3 gtk3
@@ -59,6 +68,7 @@ Note: script will run `bun add --dev webview-bun` if needed.
 
 - Move: WASD or Arrow Keys
 - Dash: Space (i-frames; deals damage if upgraded)
+- Options: Main Menu → Options to adjust Master/SFX/Music volume (saved locally).
 - Pause: P or ESC
 - The game auto-pauses for Upgrades/Shop overlays.
 
@@ -155,6 +165,7 @@ Tuning:
   - Install WebKitGTK: see “Linux desktop build requirements”
 - No audio or very quiet
   - Browsers require a user gesture to start audio; click or press a key (this repo resumes AudioContext on first interaction).
+  - Also use Main Menu → Options to adjust volumes (settings persist via localStorage).
 - Black screen or missing UI/CSS
   - Ensure assets were regenerated after changes; check DevTools console for 404s.
 
@@ -166,7 +177,7 @@ Tuning:
 
 ## License
 
-MIT. See LICENSE (add one if missing).
+Apache License 2.0. See LICENSE for details.
 
 ## Acknowledgements
 
