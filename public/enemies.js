@@ -5,6 +5,33 @@ import {playSound} from './audio.js';
 // Flocking (boids) helpers
 const FLOCK_BEHAVIORS = new Set(['chase', 'zigzag', 'kamikaze']);
 const AIR_GAP_PX = 3.0;
+const DEFAULT_TURN_RATE = 0.18; // radians per 16.67ms frame
+const SPEED_EASE = 0.18;        // speed easing towards target
+
+function normalizeVec(x, y) {
+  const l = Math.hypot(x, y);
+  return l > 1e-6 ? { x: x / l, y: y / l } : { x: 0, y: 0 };
+}
+
+// Curved steering: rotate current velocity toward desired by a limited rate; ease speed
+function steerVelocity(e, desiredDir, timeMultiplier, speedScale = 1, turnRate = DEFAULT_TURN_RATE) {
+  const targetSpeed = (e.speed || 1) * speedScale;
+  let vx = e.vx || 0, vy = e.vy || 0;
+  const curSpeed = Math.hypot(vx, vy);
+  let cx, cy;
+  if (curSpeed > 1e-3) { cx = vx / curSpeed; cy = vy / curSpeed; }
+  else { cx = desiredDir.x; cy = desiredDir.y; }
+  const curAng = Math.atan2(cy, cx);
+  const tgtAng = Math.atan2(desiredDir.y, desiredDir.x);
+  let dA = tgtAng - curAng;
+  while (dA > Math.PI) dA -= Math.PI * 2;
+  while (dA < -Math.PI) dA += Math.PI * 2;
+  const maxTurn = (turnRate || DEFAULT_TURN_RATE) * timeMultiplier;
+  const newAng = curAng + Math.max(-maxTurn, Math.min(maxTurn, dA));
+  const newSpeed = curSpeed + (targetSpeed - curSpeed) * (SPEED_EASE * timeMultiplier);
+  return { vx: Math.cos(newAng) * newSpeed, vy: Math.sin(newAng) * newSpeed };
+}
+
 function computeFlockVector(e, all) {
   const radius = Math.max(80, (e.size || 8) * 8);           // perception radius
   const sepDist = Math.max(12, (e.size || 8) * 2.2);        // desired separation
@@ -54,13 +81,27 @@ function computeFlockVector(e, all) {
   const sepN = norm(sepX, sepY);                            // separation
   const alignN = norm(velX, velY);                          // alignment
 
-  const sepW = 1.25, alignW = 0.55, cohW = 0.5;
+  const useAVBD = !!(state.physics && state.physics.enabled);
+  const sepW = useAVBD ? 0.35 : 1.0;
+  const alignW = 0.6;
+  const cohW = 0.55;
+
   let rx = sepN.x * sepW + alignN.x * alignW + cohN.x * cohW;
   let ry = sepN.y * sepW + alignN.y * alignW + cohN.y * cohW;
   const dirN = norm(rx, ry);
 
+  // Add smoothing for flock dir (reduces jitter)
+  const smooth = 0.25;
+  let smX = dirN.x, smY = dirN.y;
+  if (typeof e._flockDirX === 'number' && typeof e._flockDirY === 'number') {
+    smX = e._flockDirX * (1 - smooth) + dirN.x * smooth;
+    smY = e._flockDirY * (1 - smooth) + dirN.y * smooth;
+  }
+  const smN = norm(smX, smY);
+  e._flockDirX = smN.x; e._flockDirY = smN.y;
+
   return {
-    dir: { x: dirN.x, y: dirN.y },
+    dir: { x: smN.x, y: smN.y },
     neighbors: count,
     coh: { x: cohN.x, y: cohN.y },
     sep: { x: sepN.x, y: sepN.y },
@@ -127,8 +168,8 @@ export function moveEnemies(deltaTime) {
         createParticles(e.x, e.y, '#00ff00', 3, 'poison');
       }
     }
-    const now = Date.now();
     const stunned = e.knockUntil && now < e.knockUntil;
+    const recovering = !stunned && e.recoverUntil && Date.now() < e.recoverUntil;
     if (e.poisoned && now < e.poisoned) {
       if (!e.lastPoisonTick || now - e.lastPoisonTick > 500) {
         e.hp -= e.poisonDmg || 1;
@@ -161,38 +202,37 @@ export function moveEnemies(deltaTime) {
         case 'chase':
         default:
           if (dist > 1) {
-            const moveSpeed = e.speed * timeMultiplier;
             const toP = { x: dx / dist, y: dy / dist };
-            const grp = flock ? flock.coh : { x: 0, y: 0 };
-            let vx = toP.x * 0.5 + grp.x * 0.5;
-            let vy = toP.y * 0.5 + grp.y * 0.5;
-            const len = Math.hypot(vx, vy) || 1;
-            vx /= len; vy /= len;
-            const randomOffset = Math.sin(Date.now() * 0.001 + e.x) * 0.2;
-            e.x += vx * moveSpeed + randomOffset;
-            e.y += vy * moveSpeed + randomOffset;
-            if (flock) {
-              e.x += (flock.sep?.x || 0) * moveSpeed * 0.35;
-              e.y += (flock.sep?.y || 0) * moveSpeed * 0.35;
-            }
+            const useAVBD = !!(state.physics && state.physics.enabled);
+            const mix = flock
+              ? normalizeVec(
+                  toP.x * 0.65 + flock.coh.x * 0.35 + (flock.sep?.x || 0) * (useAVBD ? 0.15 : 0.30),
+                  toP.y * 0.65 + flock.coh.y * 0.35 + (flock.sep?.y || 0) * (useAVBD ? 0.15 : 0.30)
+                )
+              : toP;
+            const speedScale = recovering ? 0.55 : 1.0;
+            const turnRate = recovering ? 0.12 : (e.turnRate || DEFAULT_TURN_RATE);
+            const vel = steerVelocity(e, mix, timeMultiplier, speedScale, turnRate);
+            e.x += vel.vx * timeMultiplier;
+            e.y += vel.vy * timeMultiplier;
           }
           break;
         case 'zigzag':
           if (dist > 1) {
-            const moveSpeed = e.speed * timeMultiplier;
             const toP = { x: dx / dist, y: dy / dist };
-            const grp = flock ? flock.coh : { x: 0, y: 0 };
-            let vx = toP.x * 0.5 + grp.x * 0.5;
-            let vy = toP.y * 0.5 + grp.y * 0.5;
-            const len = Math.hypot(vx, vy) || 1;
-            vx /= len; vy /= len;
-            const zigzag = Math.sin(Date.now() * 0.005 + e.x) * 2;
-            e.x += vx * moveSpeed + zigzag;
-            e.y += vy * moveSpeed + zigzag;
-            if (flock) {
-              e.x += (flock.sep?.x || 0) * moveSpeed * 0.35;
-              e.y += (flock.sep?.y || 0) * moveSpeed * 0.35;
-            }
+            const side = { x: -toP.y, y: toP.x }; // perpendicular for lateral sway
+            const t = Date.now() * 0.005 + e.x * 0.15;
+            const sway = Math.sin(t);
+            const useAVBD = !!(state.physics && state.physics.enabled);
+            const desired = normalizeVec(
+              toP.x + side.x * sway * 0.5 + (flock?.coh.x || 0) * 0.25 + (flock?.sep.x || 0) * (useAVBD ? 0.12 : 0.25),
+              toP.y + side.y * sway * 0.5 + (flock?.coh.y || 0) * 0.25 + (flock?.sep.y || 0) * (useAVBD ? 0.12 : 0.25)
+            );
+            const speedScale = recovering ? 0.6 : 1.0;
+            const turnRate = recovering ? 0.12 : (e.turnRate || DEFAULT_TURN_RATE);
+            const vel = steerVelocity(e, desired, timeMultiplier, speedScale, turnRate);
+            e.x += vel.vx * timeMultiplier;
+            e.y += vel.vy * timeMultiplier;
           }
           break;
         case 'orbit':
@@ -237,20 +277,19 @@ export function moveEnemies(deltaTime) {
           break;
         case 'kamikaze':
           if (dist > 1) {
-            const speedBoost = 1 + Math.min(1.5, Math.max(0, (200 - dist) / 100));
-            const moveSpeed = e.speed * speedBoost * timeMultiplier;
             const toP = { x: dx / dist, y: dy / dist };
-            const grp = flock ? flock.coh : { x: 0, y: 0 };
-            let vx = toP.x * 0.5 + grp.x * 0.5;
-            let vy = toP.y * 0.5 + grp.y * 0.5;
-            const len = Math.hypot(vx, vy) || 1;
-            vx /= len; vy /= len;
-            e.x += vx * moveSpeed;
-            e.y += vy * moveSpeed;
-            if (flock) {
-              e.x += (flock.sep?.x || 0) * moveSpeed * 0.3;
-              e.y += (flock.sep?.y || 0) * moveSpeed * 0.3;
-            }
+            const useAVBD = !!(state.physics && state.physics.enabled);
+            const desired = normalizeVec(
+              toP.x * 0.7 + (flock?.coh.x || 0) * 0.3 + (flock?.sep.x || 0) * (useAVBD ? 0.1 : 0.2),
+              toP.y * 0.7 + (flock?.coh.y || 0) * 0.3 + (flock?.sep.y || 0) * (useAVBD ? 0.1 : 0.2)
+            );
+            const speedBoost = 1 + Math.min(1.5, Math.max(0, (200 - dist) / 100));
+            const speedScale = (recovering ? 0.6 : 1.0) * speedBoost;
+            const turnRate = recovering ? 0.12 : (e.turnRate || DEFAULT_TURN_RATE);
+            const vel = steerVelocity(e, desired, timeMultiplier, speedScale, turnRate);
+            e.x += vel.vx * timeMultiplier;
+            e.y += vel.vy * timeMultiplier;
+
             if (speedBoost > 1.5) {
               createTrailParticle(e.x, e.y, e.color);
             }

@@ -27,6 +27,9 @@ function applyKnockback(target, srcX, srcY, maxStrength = 14, radius = 80) {
   const now = Date.now();
   const stunMs = 100 + Math.round(5 * k); // softer stun scaling
   target.knockUntil = Math.max(target.knockUntil || 0, now + stunMs);
+  const recoveryMs = 220;
+  target.recoverUntil = Math.max(target.recoverUntil || 0, now + stunMs + recoveryMs);
+  target._recoverDur = recoveryMs;
   target._impactUntil = now + 240;
   target._impactPower = Math.max(target._impactPower || 0, k); // carry some strength forward
 }
