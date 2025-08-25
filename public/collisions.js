@@ -236,6 +236,34 @@ export function handleCollisions() {
     });
   }
 
+  // Melee/contact weapons aura knockback when they tick this frame
+  {
+    const now = Date.now();
+    const unit = state.rangeUnitPx || 320;
+    const player = state.player;
+    if (player && Array.isArray(player.weapons) && player.weapons.length) {
+      for (let idx = 0; idx < player.weapons.length; idx++) {
+        const wi = player.weapons[idx];
+        const w = state.cfg.weapons[wi];
+        if (!w || !(w.contactDamage > 0)) continue;
+
+        // Only apply on the exact frame the contact weapon ticked
+        const last = player.lastShotMap[wi] || 0;
+        if (now - last > 40) continue;
+
+        const R = (w.range ? w.range * unit : (player.size + 8));
+        const near = querySpatialHash(enemyHash, player.x, player.y, R + 64);
+        near.forEach(e => {
+          const d = Math.hypot(e.x - player.x, e.y - player.y);
+          if (d <= R) {
+            const spd = Math.hypot(player.velocity.x || 0, player.velocity.y || 0);
+            const kbMax = Math.min(40, 10 + (w.contactDamage || 1) * 3 + Math.min(10, spd));
+            applyKnockback(e, player.x, player.y, kbMax, R + 8);
+          }
+        });
+      }
+    }
+  }
   // Only enemy projectiles hurt the player here; contact is handled above with separation and rate-limited hits
   if (!state.player.invulnerable || Date.now() > state.player.invulnerable) {
     state.bullets.forEach(b => {
