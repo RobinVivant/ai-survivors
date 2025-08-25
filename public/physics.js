@@ -30,7 +30,7 @@ function rebuildWorld() {
   const cfg = {
     ...PHYS_CFG,
     cellSize: computeCellSize(),
-    contactSkin: -1.5, // negative => enforce ~1.5px air gap
+    contactSkin: -3.0, // negative => enforce ~3.0px air gap
     velocityDamping: 0.98,   // mild internal damping to calm piles
   };
   const w = new AVBDWorld(cfg);
@@ -125,7 +125,21 @@ export function updatePhysics(deltaMs) {
     const pi = w.particles[idx];
     if (!e || !pi) continue;
     const pad = e.size || 6;
-    e.x = clamp(pi.x.x, -20, window.innerWidth + 20);
-    e.y = clamp(pi.x.y, -20, window.innerHeight + 20);
+    const minX = pad, maxX = window.innerWidth - pad;
+    const minY = pad, maxY = window.innerHeight - pad;
+
+    let x = pi.x.x, y = pi.x.y;
+    let vx = (typeof e.vx === 'number' ? e.vx : (pi.v.x / 60));
+    let vy = (typeof e.vy === 'number' ? e.vy : (pi.v.y / 60));
+    const bounce = 0.75;
+
+    if (x < minX) { x = minX; vx = Math.abs(vx) * bounce; }
+    else if (x > maxX) { x = maxX; vx = -Math.abs(vx) * bounce; }
+
+    if (y < minY) { y = minY; vy = Math.abs(vy) * bounce; }
+    else if (y > maxY) { y = maxY; vy = -Math.abs(vy) * bounce; }
+
+    e.x = x; e.y = y;
+    e.vx = vx; e.vy = vy;
   }
 }

@@ -65,8 +65,9 @@ export function updateWaveSpawner() {
     const name = names.length ? names[Math.floor(Math.random() * names.length)] : null;
     if (!name) break;
     const e = createEnemyInstance(name);
-    e.x = Math.max(-20, Math.min(window.innerWidth + 20, cx + rx));
-    e.y = Math.max(-20, Math.min(window.innerHeight + 20, cy + ry));
+    const pad = e.size || 6;
+    e.x = Math.max(pad, Math.min(window.innerWidth - pad, cx + rx));
+    e.y = Math.max(pad, Math.min(window.innerHeight - pad, cy + ry));
     state.activeEnemies.push(e);
   }
 

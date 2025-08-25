@@ -4,7 +4,7 @@ import {playSound} from './audio.js';
 import {createEnemyInstance} from './enemies.js';
 import {buildSpatialHash, querySpatialHash} from './spatial.js';
 
-const ENEMY_AIR_GAP = 1.5; // small desired gap between enemies (px)
+const ENEMY_AIR_GAP = 3.0; // small desired gap between enemies (px)
 
 function applyKnockback(target, srcX, srcY, maxStrength = 14, radius = 80) {
   let dx = target.x - srcX;

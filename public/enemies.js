@@ -4,7 +4,7 @@ import {playSound} from './audio.js';
 
 // Flocking (boids) helpers
 const FLOCK_BEHAVIORS = new Set(['chase', 'zigzag', 'kamikaze']);
-const AIR_GAP_PX = 1.5;
+const AIR_GAP_PX = 3.0;
 function computeFlockVector(e, all) {
   const radius = Math.max(80, (e.size || 8) * 8);           // perception radius
   const sepDist = Math.max(12, (e.size || 8) * 2.2);        // desired separation
@@ -86,17 +86,18 @@ export function createEnemyInstance(name) {
 
   do {
     const edge = Math.floor(Math.random() * 4);
+    const s = Math.max(4, def.size || 8);
     if (edge === 0) {
       x = Math.random() * window.innerWidth;
-      y = -20;
+      y = s;
     } else if (edge === 1) {
-      x = window.innerWidth + 20;
+      x = window.innerWidth - s;
       y = Math.random() * window.innerHeight;
     } else if (edge === 2) {
       x = Math.random() * window.innerWidth;
-      y = window.innerHeight + 20;
+      y = window.innerHeight - s;
     } else {
-      x = -20;
+      x = s;
       y = Math.random() * window.innerHeight;
     }
     attempts++;
@@ -312,6 +313,14 @@ export function moveEnemies(deltaTime) {
       e.speed *= 2;
       e.damage = (e.damage || 1) * 2;
       e.color = '#ff0000';
+    }
+    {
+      const pad = e.size || 6;
+      const bounce = 0.75;
+      if (e.x < pad) { e.x = pad; e.vx = Math.abs(e.vx || 0) * bounce; }
+      else if (e.x > window.innerWidth - pad) { e.x = window.innerWidth - pad; e.vx = -Math.abs(e.vx || 0) * bounce; }
+      if (e.y < pad) { e.y = pad; e.vy = Math.abs(e.vy || 0) * bounce; }
+      else if (e.y > window.innerHeight - pad) { e.y = window.innerHeight - pad; e.vy = -Math.abs(e.vy || 0) * bounce; }
     }
   });
 }
