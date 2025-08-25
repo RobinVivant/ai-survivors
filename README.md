@@ -7,7 +7,7 @@ Fast, demoscene-styled, top-down arena survivor built with vanilla JS, Canvas2D,
 - ⚙️ Engine: Bun (server + compile)
 - 🖥️ Desktop: webview-bun (WebKit-based WebView)
 - 🎨 Rendering: Canvas 2D
-- 🧪 Physics: Lightweight PBD/AVBD circle solver (public/avbd2d.js)
+- 🧪 Physics: Lightweight XPBD/AVBD circle solver with contact skin + damping (public/avbd2d.js)
 - 🧰 Content: Editable config (enemies, weapons, waves, upgrades) in public/config.js
 
 ## Features ✨
@@ -171,6 +171,7 @@ dist/                  # Build outputs
 
 Overview
 - Tiny position-based dynamics solver with XPBD-style compliance for stable circle contacts.
+- New: contactSkin (px) and velocityDamping in the solver reduce jitter in dense crowds; broadphase cell size is chosen dynamically from average entity radii.
 - AVBD runs separation; collisions.js handles damage, bullets, pickups, etc.
 
 Files and roles
@@ -185,7 +186,7 @@ Pipeline (per solver step)
 4) projectConstraints:
    - Static constraints (if any) + dynamic CircleContact constraints generated from broadphase
    - Iterate this.iterations times; XPBD compliance used for stability
-5) updateVelocities: v = (xp − x) / dt; then x = xp
+5) updateVelocities: v = (xp − x) / dt; optionally scale by velocityDamping; then x = xp
 6) clearForces
 
 Units and time
@@ -197,14 +198,15 @@ Mass and inverse mass
 - Constraints distribute corrections using inverse masses (w = invM) so heavier objects move less.
 
 Contacts and compliance
-- CircleContact keeps centers at least r_i + r_j apart.
+- CircleContact keeps centers at least r_i + r_j − contactSkin apart (contactSkin in px; default 0.5).
 - collisionCompliance in PHYS_CFG controls softness:
   - 0 → rigid contacts (crisp separation)
   - Small >0 (e.g., 1e-6 … 1e-4) → slight give, helps reduce jitter in dense piles
+- velocityDamping (default 0.98) scales velocities after projection to calm stacks; set 1.0 to disable.
 - Lambda caching (per-constraint impulses) improves convergence across iterations.
 
 Broadphase
-- Spatial hash cellSize defaults to 64px. Set near the average circle diameter for fewer false positives.
+- Spatial hash cellSize is chosen dynamically each rebuild (≈ avg radius × 2.5; clamped 32–96px). Override via PHYS_CFG.cellSize.
 - Neighbors checked in a 3×3 cell window.
 
 Integration with gameplay
@@ -217,10 +219,12 @@ Boundaries
 - HalfSpaceConstraint exists for walls/ground if you ever want physically enforced borders.
 
 Tuning (public/physics.js → PHYS_CFG)
-- iterations: 6–10 for crisp separation (default 8)
-- substeps: 1–2; increase if very fast objects tunnel
-- collisionCompliance: 0 for rigid; try 1e-6 … 5e-5 if jittering in dense crowds
-- cellSize: ~2× average radius (default 64)
+- iterations: default 9 (6–10 typical) for crisp separation
+- substeps: default 2; increase if very fast objects tunnel
+- collisionCompliance: default 2e-5; 0 for rigid, 1e-6 … 5e-5 to reduce jitter in dense piles
+- contactSkin: default 0.5px; small gap to reduce jitter/tunneling in dense crowds (0 disables)
+- velocityDamping: default 0.98; mild internal damping to calm piles (1 disables)
+- cellSize: chosen dynamically from average radii (≈ 2.5× avg R; clamped 32–96px); can be overridden
 - Performance scales with (constraints + contacts) × iterations per step; broadphase keeps contact pairs manageable.
 
 Disabling AVBD (debug/fallback)
