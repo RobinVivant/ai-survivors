@@ -272,6 +272,10 @@ html, body {
     font-size: 14px;
     color: var(--text);
     letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap; /* allows wrapping on small screens */
 }
 
 /* Health bar polish */
