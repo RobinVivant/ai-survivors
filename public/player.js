@@ -184,7 +184,7 @@ export function handleShooting(ts) {
       }
     }
 
-    createTrailParticle(state.player.x, state.player.y, bullet.color);
+    createTrailParticle(originX, originY, bullet.color);
     playSound('shoot');
   });
 }
