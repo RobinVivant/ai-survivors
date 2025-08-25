@@ -76,15 +76,18 @@ export function handleShooting(ts) {
     }
   });
   if (!nearestEnemy) return;
+  const nowMs = performance.now();
   const nWeapons = state.player.weapons.length;
-  const t = performance.now() * 0.002;
+  const t = nowMs * 0.002;
   const orbitR = (state.player.size || 22) + 16;
 
-  state.player.weapons.forEach((wi, idx) => {
+  for (let idx = 0; idx < nWeapons; idx++) {
+    const wi = state.player.weapons[idx];
     const w = state.cfg.weapons[wi];
-    if (!w) return;
+    if (!w) continue;
     const interval = 1000 / (w.fireRate || 1);
-    if ((ts - (state.player.lastShotMap[wi] || 0)) < interval) return;
+    const last = state.player.lastShotMap[wi] || 0;
+    if ((nowMs - last) < interval) continue;
 
     // Orbiting origin for this weapon (matches renderer)
     const angOrbit = t + (idx * Math.PI * 2) / Math.max(1, nWeapons);
@@ -93,7 +96,7 @@ export function handleShooting(ts) {
 
     // Contact weapon: aura/ram-style damage
     if (w.contactDamage && w.contactDamage > 0) {
-      state.player.lastShotMap[wi] = ts;
+      state.player.lastShotMap[wi] = nowMs;
       const unit = state.rangeUnitPx || 500;
       const radius = (w.range ? w.range * unit : state.player.size + 8);
       let hitAny = false;
@@ -108,7 +111,7 @@ export function handleShooting(ts) {
         createTrailParticle(state.player.x, state.player.y, w.bulletColor || '#66ff88');
         playSound('hit');
       }
-      return; // do not shoot bullets for contact weapons
+      continue; // do not shoot bullets for contact weapons
     }
 
     // Compute this weapon's effective range in pixels
@@ -132,12 +135,12 @@ export function handleShooting(ts) {
           best = enemy;
         }
       });
-      if (!best) return; // no target in range for this weapon
+      if (!best) continue; // no target in range for this weapon
       targetEnemy = best;
     }
 
     // Mark shot only when we actually fire
-    state.player.lastShotMap[wi] = ts;
+    state.player.lastShotMap[wi] = nowMs;
 
     const dx = targetEnemy.x - originX;
     const dy = targetEnemy.y - originY;
@@ -186,5 +189,5 @@ export function handleShooting(ts) {
 
     createTrailParticle(originX, originY, bullet.color);
     playSound('shoot');
-  });
+  }
 }
