@@ -14,6 +14,8 @@ Fast, demoscene-styled, top-down arena survivor built with vanilla JS, Canvas2D,
 - 🔫 Modular weapons: piercing, homing, explosive, chain, bounces, split shots…
 - 🧟 Enemy behaviors: chase, zigzag, orbit, sniper, kamikaze; abilities like shield, rage, teleport, split
 - 🧮 Lightweight AVBD circle physics for smooth separation and contact
+- 💥 Knockback waves: dash and explosions shove enemies; crowds block passages naturally.
+- 🤝 Enemies-as-projectiles: knocked enemies can impact others to deal damage.
 - 🔁 Live-reload dev server that watches public/ and refreshes automatically
 - 📦 Single-binary server build with embedded assets
 - 🖥️ Desktop app (WebView) — no browser required
@@ -211,6 +213,7 @@ Broadphase
 
 Integration with gameplay
 - With AVBD enabled, enemies don’t get extra pushout from collisions.js; the solver handles separation.
+  - Knockback impulses are applied in collisions.js; enemies carry _impactPower/_impactUntil and can deal impact damage while active.
 - Player contact damage still uses proximity checks in collisions.js (with a small epsilon when AVBD is on).
 - Bullet hits, shields, explosions, and all damage accounting remain in collisions.js.
 
