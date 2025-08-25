@@ -20,6 +20,18 @@ export function createParticles(x, y, color, count = 8, type = 'explosion') {
   }
 }
 
+export function createExplosionDisc(x, y, radius, color) {
+  if (state.particles.length >= MAX_PARTICLES) return;
+  state.particles.push({
+    x, y,
+    radius,
+    life: 1,
+    decay: 0.12, // quick fade
+    color,
+    type: 'explosionDisc'
+  });
+}
+
 export function createTrailParticle(x, y, color) {
   if (state.particles.length >= MAX_PARTICLES) return;
   state.particles.push({

@@ -44,6 +44,23 @@ export function draw() {
       state.dom.ctx.restore();
       state.dom.ctx.restore();
       return;
+    } else if (p.type === 'explosionDisc') {
+      const R = p.radius || p.size || 0;
+      // soft filled disc
+      state.dom.ctx.globalAlpha = Math.max(0, p.life) * 0.28;
+      state.dom.ctx.fillStyle = p.color;
+      state.dom.ctx.beginPath();
+      state.dom.ctx.arc(p.x, p.y, R, 0, Math.PI * 2);
+      state.dom.ctx.fill();
+      // bright outline
+      state.dom.ctx.globalAlpha = Math.max(0, p.life) * 0.85;
+      state.dom.ctx.lineWidth = Math.max(2, R * 0.06);
+      state.dom.ctx.strokeStyle = p.color;
+      state.dom.ctx.beginPath();
+      state.dom.ctx.arc(p.x, p.y, R, 0, Math.PI * 2);
+      state.dom.ctx.stroke();
+      state.dom.ctx.restore();
+      return;
     }
 
     state.dom.ctx.beginPath();

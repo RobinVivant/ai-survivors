@@ -28,6 +28,8 @@ function updateAudioGains() {
 }
 
 function createDefaultPlayer() {
+  const nukeIndex = state.cfg.weapons.findIndex(w => w.name === 'Nuke Launcher');
+
   return {
     x: window.innerWidth / 2,
     y: window.innerHeight / 2,
@@ -37,7 +39,7 @@ function createDefaultPlayer() {
     size: 22,
     hp: 60,
     maxHp: 60,
-    weapons: state.cfg.weapons.length ? [0] : [],
+    weapons: nukeIndex >= 0 ? [nukeIndex] : (state.cfg.weapons.length ? [0] : []),
     lastShotMap: {},
     velocity: {x: 0, y: 0},
     acceleration: 0.3,

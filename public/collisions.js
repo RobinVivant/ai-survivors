@@ -1,5 +1,5 @@
 import {state} from './state.js';
-import {addCameraShake, createLightningEffect, createParticles} from './effects.js';
+import {addCameraShake, createLightningEffect, createParticles, createExplosionDisc} from './effects.js';
 import {playSound} from './audio.js';
 import {createEnemyInstance} from './enemies.js';
 import {buildSpatialHash, querySpatialHash} from './spatial.js';
@@ -314,7 +314,7 @@ export function handleCollisions() {
         if (b.explosive > 0) {
           const centerX = e.x;
           const centerY = e.y;
-          const kbMax = Math.max(10, Math.min(36, b.explosive * 0.4)); // scale with radius, clamp
+          const kbMax = Math.max(12, Math.min(80, b.explosive * 0.6)); // stronger knockback for huge explosions
 
           // Primary target knockback
           applyKnockback(e, centerX, centerY, kbMax, b.explosive);
@@ -330,6 +330,8 @@ export function handleCollisions() {
               }
             }
           });
+          // Visible explosion disc (covers the whole blast radius)
+          createExplosionDisc(centerX, centerY, b.explosive, b.color || '#ff6600');
           createParticles(centerX, centerY, '#ff6600', 12, 'explosion');
           addCameraShake(5, 10);
         }

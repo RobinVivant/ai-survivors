@@ -98,6 +98,18 @@ export const DEFAULT_CONFIG = {
   ],
   weapons: [
     {
+      name: "Nuke Launcher",
+      dmg: 10,
+      fireRate: 0.9,
+      bulletSpeed: 6,
+      bulletSize: 6,
+      bulletColor: "#ff8844",
+      price: 0,
+      description: "Massive explosive warhead",
+      explosive: 140, // explosion radius in px
+      range: 1.6
+    },
+    {
       name: "Machine Gun",
       dmg: 5,
       fireRate: 7,
