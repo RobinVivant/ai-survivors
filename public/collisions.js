@@ -4,6 +4,8 @@ import {playSound} from './audio.js';
 import {createEnemyInstance} from './enemies.js';
 import {buildSpatialHash, querySpatialHash} from './spatial.js';
 
+const ENEMY_AIR_GAP = 1.5; // small desired gap between enemies (px)
+
 function applyKnockback(target, srcX, srcY, maxStrength = 14, radius = 80) {
   let dx = target.x - srcX;
   let dy = target.y - srcY;
@@ -112,11 +114,11 @@ export function handleCollisions() {
         const dx = o.x - e.x;
         const dy = o.y - e.y;
         const dist = Math.hypot(dx, dy) || 0.0001;
-        const minDist = (e.size || 0) + (o.size || 0);
-        if (dist < minDist) {
+        const desired = (e.size || 0) + (o.size || 0) + ENEMY_AIR_GAP;
+        if (dist < desired) {
           const nx = dx / dist;
           const ny = dy / dist;
-          const overlap = minDist - dist;
+          const overlap = desired - dist;
 
           const m1 = Math.max(1, (e.size || 1) * (e.size || 1));
           const m2 = Math.max(1, (o.size || 1) * (o.size || 1));

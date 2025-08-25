@@ -4,6 +4,7 @@ import {playSound} from './audio.js';
 
 // Flocking (boids) helpers
 const FLOCK_BEHAVIORS = new Set(['chase', 'zigzag', 'kamikaze']);
+const AIR_GAP_PX = 1.5;
 function computeFlockVector(e, all) {
   const radius = Math.max(80, (e.size || 8) * 8);           // perception radius
   const sepDist = Math.max(12, (e.size || 8) * 2.2);        // desired separation
@@ -21,10 +22,15 @@ function computeFlockVector(e, all) {
     count++;
     cx += o.x; cy += o.y;
     velX += o.vx || 0; velY += o.vy || 0;
-    if (d < sepDist) {
-      const s = (sepDist - d) / sepDist;                    // stronger when closer
-      sepX -= (dx / d) * s;
-      sepY -= (dy / d) * s;
+    const desired = (e.size || 8) + (o.size || 8) + AIR_GAP_PX;
+    if (d < desired) {
+      const s = (desired - d) / Math.max(1, desired);
+      sepX -= (dx / d) * s * 1.4;
+      sepY -= (dy / d) * s * 1.4;
+    } else if (d < sepDist) {
+      const s = (sepDist - d) / Math.max(1e-6, sepDist);
+      sepX -= (dx / d) * s * 0.8;
+      sepY -= (dy / d) * s * 0.8;
     }
   }
 
@@ -48,7 +54,7 @@ function computeFlockVector(e, all) {
   const sepN = norm(sepX, sepY);                            // separation
   const alignN = norm(velX, velY);                          // alignment
 
-  const sepW = 1.1, alignW = 0.6, cohW = 0.5;
+  const sepW = 1.25, alignW = 0.55, cohW = 0.5;
   let rx = sepN.x * sepW + alignN.x * alignW + cohN.x * cohW;
   let ry = sepN.y * sepW + alignN.y * alignW + cohN.y * cohW;
   const dirN = norm(rx, ry);
@@ -178,8 +184,8 @@ export function moveEnemies(deltaTime) {
             e.x += vx * moveSpeed + randomOffset;
             e.y += vy * moveSpeed + randomOffset;
             if (flock) {
-              e.x += (flock.sep?.x || 0) * moveSpeed * 0.25;
-              e.y += (flock.sep?.y || 0) * moveSpeed * 0.25;
+              e.x += (flock.sep?.x || 0) * moveSpeed * 0.35;
+              e.y += (flock.sep?.y || 0) * moveSpeed * 0.35;
             }
           }
           break;
@@ -196,8 +202,8 @@ export function moveEnemies(deltaTime) {
             e.x += vx * moveSpeed + zigzag;
             e.y += vy * moveSpeed + zigzag;
             if (flock) {
-              e.x += (flock.sep?.x || 0) * moveSpeed * 0.25;
-              e.y += (flock.sep?.y || 0) * moveSpeed * 0.25;
+              e.x += (flock.sep?.x || 0) * moveSpeed * 0.35;
+              e.y += (flock.sep?.y || 0) * moveSpeed * 0.35;
             }
           }
           break;
@@ -254,8 +260,8 @@ export function moveEnemies(deltaTime) {
             e.x += vx * moveSpeed;
             e.y += vy * moveSpeed;
             if (flock) {
-              e.x += (flock.sep?.x || 0) * moveSpeed * 0.2;
-              e.y += (flock.sep?.y || 0) * moveSpeed * 0.2;
+              e.x += (flock.sep?.x || 0) * moveSpeed * 0.3;
+              e.y += (flock.sep?.y || 0) * moveSpeed * 0.3;
             }
             if (speedBoost > 1.5) {
               createTrailParticle(e.x, e.y, e.color);
