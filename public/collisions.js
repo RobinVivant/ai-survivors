@@ -23,6 +23,8 @@ function applyKnockback(target, srcX, srcY, maxStrength = 14, radius = 80) {
 
   // Tag for “enemy as projectile” impact damage
   const now = Date.now();
+  const stunMs = 140 + Math.round(8 * k); // stronger hits = longer stun
+  target.knockUntil = Math.max(target.knockUntil || 0, now + stunMs);
   target._impactUntil = now + 240;
   target._impactPower = Math.max(target._impactPower || 0, k); // carry some strength forward
 }
@@ -404,6 +406,11 @@ export function handleCollisions() {
           dst.vy = (dst.vy || 0) + (dy / dist) * shove;
           dst._impactPower = Math.max(dst._impactPower || 0, power * 0.6);
           dst._impactUntil = now + 220;
+          // Stun both participants proportionally to impulse magnitude
+          const stunDst = 120 + Math.round(6 * shove);
+          dst.knockUntil = Math.max(dst.knockUntil || 0, now + stunDst);
+          const stunSrc = 80 + Math.round(4 * power);
+          src.knockUntil = Math.max(src.knockUntil || 0, now + stunSrc);
 
           // keep some momentum on the source so short chains are more likely
           src._impactPower = power * 0.7;

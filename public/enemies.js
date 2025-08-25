@@ -109,6 +109,7 @@ export function moveEnemies(deltaTime) {
       }
     }
     const now = Date.now();
+    const stunned = e.knockUntil && now < e.knockUntil;
     if (e.poisoned && now < e.poisoned) {
       if (!e.lastPoisonTick || now - e.lastPoisonTick > 500) {
         e.hp -= e.poisonDmg || 1;
@@ -138,96 +139,107 @@ export function moveEnemies(deltaTime) {
     const flockDir = FLOCK_BEHAVIORS.has(e.behavior || 'chase')
       ? computeFlockVector(e, state.activeEnemies)
       : null;
-    switch (e.behavior) {
-      case 'chase':
-      default:
-        if (dist > 1) {
-          const randomOffset = Math.sin(Date.now() * 0.001 + e.x) * 0.2;
-          const moveSpeed = e.speed * timeMultiplier;
-          e.x += (dx / dist) * moveSpeed + randomOffset;
-          e.y += (dy / dist) * moveSpeed + randomOffset;
-          if (flockDir) {
-            const gain = (e.flockGain ?? 0.6) * e.speed * timeMultiplier;
-            e.x += flockDir.x * gain;
-            e.y += flockDir.y * gain;
+    if (!stunned) {
+      switch (e.behavior) {
+        case 'chase':
+        default:
+          if (dist > 1) {
+            const randomOffset = Math.sin(Date.now() * 0.001 + e.x) * 0.2;
+            const moveSpeed = e.speed * timeMultiplier;
+            e.x += (dx / dist) * moveSpeed + randomOffset;
+            e.y += (dy / dist) * moveSpeed + randomOffset;
+            if (flockDir) {
+              const gain = (e.flockGain ?? 0.6) * e.speed * timeMultiplier;
+              e.x += flockDir.x * gain;
+              e.y += flockDir.y * gain;
+            }
           }
-        }
-        break;
-      case 'zigzag':
-        if (dist > 1) {
-          const zigzag = Math.sin(Date.now() * 0.005 + e.x) * 2;
-          const moveSpeed = e.speed * timeMultiplier;
-          e.x += (dx / dist) * moveSpeed + zigzag;
-          e.y += (dy / dist) * moveSpeed + zigzag;
-          if (flockDir) {
-            const gain = (e.flockGain ?? 0.6) * e.speed * timeMultiplier;
-            e.x += flockDir.x * gain;
-            e.y += flockDir.y * gain;
+          break;
+        case 'zigzag':
+          if (dist > 1) {
+            const zigzag = Math.sin(Date.now() * 0.005 + e.x) * 2;
+            const moveSpeed = e.speed * timeMultiplier;
+            e.x += (dx / dist) * moveSpeed + zigzag;
+            e.y += (dy / dist) * moveSpeed + zigzag;
+            if (flockDir) {
+              const gain = (e.flockGain ?? 0.6) * e.speed * timeMultiplier;
+              e.x += flockDir.x * gain;
+              e.y += flockDir.y * gain;
+            }
           }
-        }
-        break;
-      case 'orbit':
-        const orbitRadius = 150;
-        if (dist > orbitRadius) {
-          const moveSpeed = e.speed * timeMultiplier;
-          e.x += (dx / dist) * moveSpeed;
-          e.y += (dy / dist) * moveSpeed;
-        } else {
-          const orbitAngle = Math.atan2(dy, dx) + 0.02;
-          e.x = state.player.x + Math.cos(orbitAngle) * orbitRadius;
-          e.y = state.player.y + Math.sin(orbitAngle) * orbitRadius;
-        }
-        break;
-      case 'teleport':
-        if (now >= (e.nextTeleportAt || 0) && Math.random() < 0.01) {
-          createParticles(e.x, e.y, e.color, 8, 'teleport');
-          e.x = state.player.x + (Math.random() - 0.5) * 200;
-          e.y = state.player.y + (Math.random() - 0.5) * 200;
-          e.x = Math.max(20, Math.min(window.innerWidth - 20, e.x));
-          e.y = Math.max(20, Math.min(window.innerHeight - 20, e.y));
-          createParticles(e.x, e.y, e.color, 8, 'teleport');
-          e.nextTeleportAt = now + (e.teleportCooldownMs || 3000);
-        }
-        if (dist > 1) {
-          const moveSpeed = e.speed * timeMultiplier;
-          e.x += (dx / dist) * moveSpeed;
-          e.y += (dy / dist) * moveSpeed;
-        }
-        break;
-      case 'sniper':
-        const sniperDist = 200;
-        if (dist < sniperDist - 10) {
-          const moveSpeed = e.speed * timeMultiplier;
-          e.x -= (dx / dist) * moveSpeed;
-          e.y -= (dy / dist) * moveSpeed;
-        } else if (dist > sniperDist + 10) {
-          const moveSpeed = e.speed * timeMultiplier;
-          e.x += (dx / dist) * moveSpeed;
-          e.y += (dy / dist) * moveSpeed;
-        }
-        break;
-      case 'kamikaze':
-        if (dist > 1) {
-          const speedBoost = 1 + Math.min(1.5, Math.max(0, (200 - dist) / 100));
-          const moveSpeed = e.speed * speedBoost * timeMultiplier;
-          e.x += (dx / dist) * moveSpeed;
-          e.y += (dy / dist) * moveSpeed;
-          if (speedBoost > 1.5) {
-            createTrailParticle(e.x, e.y, e.color);
+          break;
+        case 'orbit':
+          const orbitRadius = 150;
+          if (dist > orbitRadius) {
+            const moveSpeed = e.speed * timeMultiplier;
+            e.x += (dx / dist) * moveSpeed;
+            e.y += (dy / dist) * moveSpeed;
+          } else {
+            const orbitAngle = Math.atan2(dy, dx) + 0.02;
+            e.x = state.player.x + Math.cos(orbitAngle) * orbitRadius;
+            e.y = state.player.y + Math.sin(orbitAngle) * orbitRadius;
           }
-          if (flockDir) {
-            const gain = (e.flockGain ?? 0.6) * e.speed * speedBoost * timeMultiplier;
-            e.x += flockDir.x * gain;
-            e.y += flockDir.y * gain;
+          break;
+        case 'teleport':
+          if (now >= (e.nextTeleportAt || 0) && Math.random() < 0.01) {
+            createParticles(e.x, e.y, e.color, 8, 'teleport');
+            e.x = state.player.x + (Math.random() - 0.5) * 200;
+            e.y = state.player.y + (Math.random() - 0.5) * 200;
+            e.x = Math.max(20, Math.min(window.innerWidth - 20, e.x));
+            e.y = Math.max(20, Math.min(window.innerHeight - 20, e.y));
+            createParticles(e.x, e.y, e.color, 8, 'teleport');
+            e.nextTeleportAt = now + (e.teleportCooldownMs || 3000);
           }
-        }
-        break;
+          if (dist > 1) {
+            const moveSpeed = e.speed * timeMultiplier;
+            e.x += (dx / dist) * moveSpeed;
+            e.y += (dy / dist) * moveSpeed;
+          }
+          break;
+        case 'sniper':
+          const sniperDist = 200;
+          if (dist < sniperDist - 10) {
+            const moveSpeed = e.speed * timeMultiplier;
+            e.x -= (dx / dist) * moveSpeed;
+            e.y -= (dy / dist) * moveSpeed;
+          } else if (dist > sniperDist + 10) {
+            const moveSpeed = e.speed * timeMultiplier;
+            e.x += (dx / dist) * moveSpeed;
+            e.y += (dy / dist) * moveSpeed;
+          }
+          break;
+        case 'kamikaze':
+          if (dist > 1) {
+            const speedBoost = 1 + Math.min(1.5, Math.max(0, (200 - dist) / 100));
+            const moveSpeed = e.speed * speedBoost * timeMultiplier;
+            e.x += (dx / dist) * moveSpeed;
+            e.y += (dy / dist) * moveSpeed;
+            if (speedBoost > 1.5) {
+              createTrailParticle(e.x, e.y, e.color);
+            }
+            if (flockDir) {
+              const gain = (e.flockGain ?? 0.6) * e.speed * speedBoost * timeMultiplier;
+              e.x += flockDir.x * gain;
+              e.y += flockDir.y * gain;
+            }
+          }
+          break;
+      }
+    } else {
+      // Inertial slide with mild damping while stunned
+      const damp = Math.pow(0.985, timeMultiplier);
+      e.x += (e.vx || 0) * timeMultiplier;
+      e.y += (e.vy || 0) * timeMultiplier;
+      e.vx = (e.vx || 0) * damp;
+      e.vy = (e.vy || 0) * damp;
     }
 
     const dxStep = e.x - oldX;
     const dyStep = e.y - oldY;
-    e.vx = dxStep / timeMultiplier;
-    e.vy = dyStep / timeMultiplier;
+    if (!stunned) {
+      e.vx = dxStep / timeMultiplier;
+      e.vy = dyStep / timeMultiplier;
+    }
 
     if (e.projectile && (!e.lastShot || Date.now() - e.lastShot > 2400)) {
       const angle = Math.atan2(dy, dx);
